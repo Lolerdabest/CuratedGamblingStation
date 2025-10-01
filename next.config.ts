@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   }
 };
 

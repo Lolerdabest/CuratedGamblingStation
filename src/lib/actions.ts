@@ -14,10 +14,17 @@ const db = {
 
 // --- Helper to get base URL ---
 function getBaseUrl() {
-  const heads = headers();
-  const protocol = heads.get('x-forwarded-proto') || 'http';
-  const host = heads.get('host');
-  return `${protocol}://${host}`;
+    // If a base URL is set in the environment variables, use that.
+    // This is the reliable way to get the public URL in production.
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      return process.env.NEXT_PUBLIC_BASE_URL;
+    }
+  
+    // Otherwise, fall back to using headers, which works in most environments.
+    const heads = headers();
+    const protocol = heads.get('x-forwarded-proto') || 'http';
+    const host = heads.get('host');
+    return `${protocol}://${host}`;
 }
 
 
