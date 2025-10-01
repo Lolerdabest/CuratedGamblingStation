@@ -35,7 +35,7 @@ export const games: Game[] = [
     id: 'keno',
     name: 'Keno',
     description: 'Pick your lucky numbers and see how many you can match.',
-    minBet: 100,
+    minBet: 250,
     icon: Ticket,
   },
 ];
