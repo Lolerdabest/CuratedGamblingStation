@@ -47,7 +47,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
                 embeds: [{
                     title: '⏳ New Bet Awaiting Confirmation',
                     color: 0xFFA500, // Orange
-                    description: `To confirm you have received the payment, click this link:\n**[${confirmationUrl}](${confirmationUrl})**`,
+                    description: `To confirm you have received the payment, click the link below:\n\n[**Click Here to Confirm Payment**](${confirmationUrl})`,
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
                         { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
