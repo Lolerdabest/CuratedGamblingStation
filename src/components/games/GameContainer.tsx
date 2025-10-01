@@ -6,6 +6,8 @@ import RouletteGame from "./RouletteGame";
 import PopTheBalloonGame from "./PopTheBalloonGame";
 import BlackjackGame from "./BlackjackGame";
 import KenoGame from "./KenoGame";
+import DragonTowerGame from "./DragonTowerGame";
+import ChickenCrossGame from "./ChickenCrossGame";
 import { games } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -21,6 +23,8 @@ const gameComponents = {
     'pop-the-balloon': PopTheBalloonGame,
     'blackjack': BlackjackGame,
     'keno': KenoGame,
+    'dragon-tower': DragonTowerGame,
+    'chicken-cross': ChickenCrossGame,
 };
 
 export default function GameContainer({ bet }: GameContainerProps) {

@@ -1,13 +1,13 @@
 import { Game, Bet } from '@/lib/types';
-import { Bomb, Circle, Gift, Spade, Ticket } from 'lucide-react';
+import { Bomb, Circle, Gift, Spade, Ticket, TowerControl, Bird } from 'lucide-react';
 
 export const games: Game[] = [
   {
-    id: 'pop-the-balloon',
-    name: 'Pop the Balloon',
-    description: 'Pop balloons to increase your multiplier, but avoid the duds.',
+    id: 'mines',
+    name: 'Mines',
+    description: 'Uncover gems and avoid the mines. The more you find, the more you win.',
     minBet: 250,
-    icon: Gift,
+    icon: Bomb,
   },
   {
     id: 'roulette',
@@ -15,13 +15,6 @@ export const games: Game[] = [
     description: 'Bet on your lucky number or color on the spinning wheel.',
     minBet: 250,
     icon: Circle,
-  },
-  {
-    id: 'mines',
-    name: 'Mines',
-    description: 'Uncover gems and avoid the mines. The more you find, the more you win.',
-    minBet: 250,
-    icon: Bomb,
   },
   {
     id: 'blackjack',
@@ -36,6 +29,27 @@ export const games: Game[] = [
     description: 'Pick your lucky numbers and see how many you can match.',
     minBet: 250,
     icon: Ticket,
+  },
+  {
+    id: 'dragon-tower',
+    name: 'Dragon Tower',
+    description: 'Climb the tower by picking the right tiles, but avoid the skulls.',
+    minBet: 250,
+    icon: TowerControl,
+  },
+  {
+    id: 'chicken-cross',
+    name: 'Chicken Cross',
+    description: 'Help the chicken cross the road and avoid the cars.',
+    minBet: 250,
+    icon: Bird,
+  },
+  {
+    id: 'pop-the-balloon',
+    name: 'Pop the Balloon',
+    description: 'Pop balloons to increase your multiplier, but avoid the duds.',
+    minBet: 250,
+    icon: Gift,
   },
 ];
 
