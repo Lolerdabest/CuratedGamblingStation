@@ -7,18 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, CircleDashed, Loader2, ShieldAlert, XCircle } from 'lucide-react';
+import { CheckCircle, CircleDashed, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
-type ActionableBet = Bet & { isVerifying?: boolean };
+type ActionableBet = Bet & { isConfirming?: boolean };
 
 export default function AdminDashboardClient({ initialBets }: { initialBets: Bet[] }) {
   const [bets, setBets] = React.useState<ActionableBet[]>(initialBets);
   const { toast } = useToast();
 
-  const handleVerify = async (betId: string) => {
-    setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isVerifying: true, status: 'verifying' } : b)));
+  const handleConfirm = async (betId: string) => {
+    setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: true } : b)));
 
     const result = await verifyAndConfirmBet(betId);
 
@@ -30,15 +29,15 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
     } else {
       toast({
         variant: 'destructive',
-        title: 'Verification Failed',
+        title: 'Confirmation Failed',
         description: result.message,
       });
     }
     
     if (result.newStatus) {
-        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isVerifying: false, status: result.newStatus! } : b)));
+        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: result.newStatus! } : b)));
     } else {
-        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isVerifying: false, status: 'pending' } : b)));
+        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: 'pending' } : b)));
     }
   };
 
@@ -52,10 +51,6 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
         return <Badge className="bg-accent text-accent-foreground">Won</Badge>;
       case 'lost':
         return <Badge variant="destructive">Lost</Badge>;
-      case 'verifying':
-        return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" />Verifying</Badge>;
-      case 'verification_failed':
-        return <Badge variant="destructive"><ShieldAlert className="mr-1 h-3 w-3" />Failed</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -93,16 +88,16 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
                 <TableCell>{getStatusBadge(bet.status)}</TableCell>
                 <TableCell>{format(new Date(bet.createdAt), 'PPpp')}</TableCell>
                 <TableCell className="text-center">
-                  {bet.status === 'pending' || bet.status === 'verification_failed' ? (
+                  {bet.status === 'pending' ? (
                     <Button
                       size="sm"
-                      onClick={() => handleVerify(bet.id)}
-                      disabled={bet.isVerifying}
+                      onClick={() => handleConfirm(bet.id)}
+                      disabled={bet.isConfirming}
                     >
-                      {bet.isVerifying ? (
+                      {bet.isConfirming ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
-                        'Verify & Confirm'
+                        'Confirm Payment'
                       )}
                     </Button>
                   ) : (

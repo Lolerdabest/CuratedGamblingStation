@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games, mockBets } from './data';
 import type { Bet, BetStatus, GameId } from './types';
-import { verifyPayment } from '@/ai/flows/payment-verification-tool';
 
 // In a real app, this would be a database (e.g., Firestore)
 let bets: Bet[] = [...mockBets];
@@ -58,27 +57,11 @@ export async function verifyAndConfirmBet(betId: string): Promise<{ success: boo
     return { success: false, message: 'Bet not found.' };
   }
 
-  // AI Payment Verification
-  try {
-    const verificationResult = await verifyPayment({
-      minecraftUsername: bet.userId,
-      amount: bet.amount,
-    });
-    
-    if (verificationResult.paymentVerified) {
-       bet.status = 'confirmed';
-       revalidatePath('/admin');
-       revalidatePath(`/play/user/${bet.userId}`);
-       return { success: true, message: 'Payment verified and bet confirmed!', newStatus: 'confirmed' };
-    } else {
-        bet.status = 'verification_failed';
-        revalidatePath('/admin');
-        return { success: false, message: 'AI could not verify payment.', newStatus: 'verification_failed' };
-    }
-  } catch (error) {
-    console.error("AI Verification Error:", error);
-    return { success: false, message: 'An error occurred during AI verification.' };
-  }
+  // Manual confirmation
+  bet.status = 'confirmed';
+  revalidatePath('/admin');
+  revalidatePath(`/play/user/${bet.userId}`);
+  return { success: true, message: 'Bet confirmed!', newStatus: 'confirmed' };
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {

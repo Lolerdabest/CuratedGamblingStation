@@ -56,8 +56,6 @@ export default async function UserGamesPage({ params }: { params: { username: st
                     {bet.status === 'confirmed' && <Badge variant="outline" className="text-accent border-accent"><Hourglass className="mr-2 h-4 w-4" />Ready to Play</Badge>}
                     {bet.status === 'won' && <Badge className="bg-green-600/80"><ThumbsUp className="mr-2 h-4 w-4" />Won {bet.payout?.toLocaleString()}</Badge>}
                     {bet.status === 'lost' && <Badge variant="destructive"><ThumbsDown className="mr-2 h-4 w-4" />Lost</Badge>}
-                    {bet.status === 'verification_failed' && <Badge variant="destructive">Payment Failed</Badge>}
-                    {bet.status === 'verifying' && <Badge variant="outline">Verifying...</Badge>}
                   
                     <Button asChild variant={bet.status === 'confirmed' ? 'default' : 'outline'} disabled={bet.status !== 'confirmed'} className="w-full md:w-auto">
                         <Link href={`/play/game/${bet.id}`}>

@@ -13,7 +13,7 @@ export interface User {
   discordTag: string;
 }
 
-export type BetStatus = 'pending' | 'confirmed' | 'won' | 'lost' | 'verifying' | 'verified' | 'verification_failed';
+export type BetStatus = 'pending' | 'confirmed' | 'won' | 'lost';
 
 export interface Bet {
   id: string;
