@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { GameCard } from '@/components/shared/GameCard';
 import { BetModal } from '@/components/auth/BetModal';
-import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
 import { GameCodeForm } from '@/components/play/GameCodeForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +13,6 @@ export default function Home({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const gameId = searchParams.game as string | undefined;
-  const selectedGame = games.find((g) => g.id === gameId);
 
   return (
     <>
@@ -56,9 +54,9 @@ export default function Home({
         </section>
 
       </div>
-      {selectedGame && (
+      {gameId && (
         <BetModal
-          game={selectedGame}
+          gameId={gameId}
         />
       )}
     </>

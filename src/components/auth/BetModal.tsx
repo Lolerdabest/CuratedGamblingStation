@@ -4,7 +4,7 @@ import * as React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { Game } from '@/lib/types';
+import { games } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,14 +24,15 @@ import { Slider } from '../ui/slider';
 import { useRouter } from 'next/navigation';
 
 interface BetModalProps {
-  game: Game;
+  gameId: string;
 }
 
-export function BetModal({ game }: BetModalProps) {
+export function BetModal({ gameId }: BetModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
+  const game = games.find((g) => g.id === gameId);
   const [numMines, setNumMines] = React.useState(5);
 
   const formSchema = z.object({
@@ -41,7 +42,7 @@ export function BetModal({ game }: BetModalProps) {
     discordTag: z.string().min(2, { message: 'Discord username is required.' }),
     amount: z
       .number({ coerce: true })
-      .min(game.minBet, { message: `Minimum bet is ${game.minBet}.` }),
+      .min(game?.minBet ?? 0, { message: `Minimum bet is ${game?.minBet}.` }),
   });
   
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,7 +50,7 @@ export function BetModal({ game }: BetModalProps) {
     defaultValues: {
       minecraftUsername: '',
       discordTag: '',
-      amount: game.minBet,
+      amount: game?.minBet ?? 250,
     },
   });
 
@@ -62,6 +63,7 @@ export function BetModal({ game }: BetModalProps) {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!game) return;
     setIsSubmitting(true);
     
     let gameOptions: Record<string, any> | undefined;
@@ -102,6 +104,12 @@ export function BetModal({ game }: BetModalProps) {
     }
   };
 
+  if (!game) {
+    return null;
+  }
+  
+  const Icon = game.icon;
+
   return (
     <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] bg-card border-border">
@@ -109,7 +117,7 @@ export function BetModal({ game }: BetModalProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl text-primary flex items-center gap-2">
-                  <game.icon className="w-6 h-6" />
+                  <Icon className="w-6 h-6" />
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
