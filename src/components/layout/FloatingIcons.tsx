@@ -18,7 +18,7 @@ const icons = [
   Heart,
   Diamond,
 ];
-const NUM_ICONS = 20;
+const NUM_ICONS = 30;
 
 export default function FloatingIcons() {
     const [renderedIcons, setRenderedIcons] = React.useState<React.ReactNode[]>([]);

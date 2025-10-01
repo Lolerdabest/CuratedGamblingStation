@@ -85,7 +85,7 @@
     @apply pointer-events-none absolute inset-0 z-[-1] overflow-hidden;
   }
   .floating-icons .icon {
-    @apply absolute block text-primary/10;
+    @apply absolute block text-primary/15;
     animation: float-up linear infinite;
   }
 }
