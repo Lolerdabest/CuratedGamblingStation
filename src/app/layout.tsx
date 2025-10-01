@@ -6,6 +6,7 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import AppLayout from '@/components/layout/AppLayout';
+import FloatingIcons from '@/components/layout/FloatingIcons';
 
 export const metadata: Metadata = {
   title: 'BlockChain - Minecraft Gambling',
@@ -27,6 +28,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
+        <FloatingIcons />
         <SidebarProvider>
           <AppLayout>{children}</AppLayout>
         </SidebarProvider>
