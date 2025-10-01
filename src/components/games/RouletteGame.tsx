@@ -19,6 +19,8 @@ type BetChoice = 'red' | 'black';
 const numbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
 const numberColors: { [key: number]: 'red' | 'black' | 'green' } = {0: 'green', 1: 'red', 2: 'black', 3: 'red', 4: 'black', 5: 'red', 6: 'black', 7: 'red', 8: 'black', 9: 'red', 10: 'black', 11: 'black', 12: 'red', 13: 'black', 14: 'red', 15: 'black', 16: 'red', 17: 'black', 18: 'red', 19: 'red', 20: 'black', 21: 'red', 22: 'black', 23: 'red', 24: 'black', 25: 'red', 26: 'black', 27: 'red', 28: 'black', 29: 'black', 30: 'red', 31: 'black', 32: 'red', 33: 'black', 34: 'red', 35: 'black', 36: 'red'};
 
+const ANGLE_PER_SEGMENT = 360 / numbers.length;
+
 export default function RouletteGame({ bet }: RouletteGameProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -26,6 +28,7 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
   const [betChoice, setBetChoice] = useState<BetChoice | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
+  const [rotation, setRotation] = useState(0);
 
   const handleSpin = () => {
     if (!betChoice) {
@@ -33,9 +36,15 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
       return;
     }
     setIsSpinning(true);
+    setWinningNumber(null);
 
     const randomIndex = Math.floor(Math.random() * numbers.length);
     const winner = numbers[randomIndex];
+
+    const finalAngle = -(randomIndex * ANGLE_PER_SEGMENT + ANGLE_PER_SEGMENT / 2);
+    const fullSpins = 4;
+    const newRotation = rotation + (360 * fullSpins) + finalAngle;
+    setRotation(newRotation);
     
     setTimeout(() => {
         setWinningNumber(winner);
@@ -45,16 +54,14 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
             const winnerColor = numberColors[winner];
             const didWin = winnerColor === betChoice;
             const payout = didWin ? bet.amount * 2 : 0;
-            const gameResult = await resolveGame(bet.id, didWin ? 'win' : 'loss', payout);
             
-            if (gameResult.success) {
-                toast({ 
-                    title: `The ball landed on ${winner} (${winnerColor})`, 
-                    description: didWin ? `You won ${payout}!` : "You lost." 
-                });
-            } else {
-                 toast({ variant: 'destructive', title: 'Error', description: 'Could not save game result.'});
-            }
+            const gameOptions = { bet: betChoice };
+            await resolveGame(bet.id, didWin ? 'win' : 'loss', payout, gameOptions);
+            
+            toast({ 
+                title: `The ball landed on ${winner} (${winnerColor})`, 
+                description: didWin ? `You won ${payout}!` : "You lost." 
+            });
         });
     }, 4000);
   };
@@ -63,26 +70,13 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     <Card className="max-w-lg mx-auto bg-secondary border-primary/20 text-center">
       <CardContent className="p-6 space-y-6">
         <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
-            <Icons.roulette className={cn("w-full h-full text-primary/30 transition-transform duration-[4000ms] ease-[cubic-bezier(0.25,1,0.5,1)]", isSpinning && "rotate-[1440deg]")} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className={cn("absolute w-3 h-3 bg-white rounded-full shadow-lg transition-transform duration-[4000ms]", {
-                    'animate-roulette-ball': isSpinning,
-                })} />
-            </div>
-
-            <style jsx>{`
-                @keyframes roulette-ball {
-                    0% { transform: rotate(0deg) translateY(-80px) rotate(0deg) scale(1); }
-                    80% { transform: rotate(1440deg) translateY(-80px) rotate(-1440deg) scale(1); }
-                    100% { transform: rotate(1500deg) translateY(0px) rotate(-1500deg) scale(1.5); }
-                }
-                .animate-roulette-ball {
-                    animation: roulette-ball 4s cubic-bezier(0.3, 0, 0.4, 1) forwards;
-                }
-            `}</style>
-
+            <div className='absolute top-0 left-1/2 -translate-x-1/2 -mt-2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white z-10'></div>
+            <Icons.roulette 
+                className={cn("w-full h-full transition-transform duration-[3800ms] ease-[cubic-bezier(0.25,1,0.5,1)]")}
+                style={{ transform: `rotate(${rotation}deg)`}}
+            />
             {winningNumber !== null && !isSpinning && (
-                <div className="absolute flex flex-col items-center justify-center animate-fade-in-up">
+                <div className="absolute flex flex-col items-center justify-center animate-scale-in">
                     <p className='text-sm text-muted-foreground'>Winner</p>
                     <p className={cn("text-4xl font-bold", 
                         {
@@ -103,8 +97,8 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
               disabled={isSpinning || winningNumber !== null}
               className={cn(
                 "py-6 text-lg text-white font-bold transition-all",
-                "bg-red-500/80 hover:bg-red-500",
-                betChoice !== 'red' && betChoice !== null && "opacity-50",
+                "bg-red-600 hover:bg-red-700",
+                betChoice !== 'red' && betChoice !== null && "opacity-50 scale-95",
                 betChoice === 'red' && "ring-2 ring-offset-2 ring-offset-background ring-accent"
               )}
             >
@@ -116,7 +110,7 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
               className={cn(
                 "py-6 text-lg text-white font-bold transition-all",
                 "bg-gray-800 hover:bg-gray-700",
-                 betChoice !== 'black' && betChoice !== null && "opacity-50",
+                 betChoice !== 'black' && betChoice !== null && "opacity-50 scale-95",
                  betChoice === 'black' && "ring-2 ring-offset-2 ring-offset-background ring-accent"
               )}
             >

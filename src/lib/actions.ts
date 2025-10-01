@@ -155,7 +155,7 @@ export async function findGameByCode(code: string) {
 }
 
 
-export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number) {
+export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number, gameOptions?: Record<string, any>) {
     const betIndex = db.bets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
@@ -171,6 +171,9 @@ export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push'
     const status = statusMap[result];
 
     db.bets[betIndex] = { ...bet, status: status, payout: payout };
+     if (gameOptions) {
+        db.bets[betIndex].gameOptions = { ...bet.gameOptions, ...gameOptions };
+    }
     const updatedBet = db.bets[betIndex];
     
     const colorMap = { 'win': 0x2ecc71, 'loss': 0xe74c3c, 'push': 0xaaaaaa };
