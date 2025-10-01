@@ -9,12 +9,14 @@ import { useToast } from '@/hooks/use-toast';
 
 export function GameCodeForm() {
   const [isLoading, setIsLoading] = React.useState(false);
-  const [code, setCode] = React.useState('');
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!code.trim()) {
+    const formData = new FormData(e.currentTarget);
+    const code = formData.get('code') as string;
+
+    if (!code || code.trim().length === 0) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -25,8 +27,8 @@ export function GameCodeForm() {
     setIsLoading(true);
 
     try {
-      const result = await findGameByCode(code);
-      if (!result.success) {
+      const result = await findGameByCode(code.trim());
+      if (result && !result.success) {
         toast({
           variant: 'destructive',
           title: 'Error',
@@ -52,8 +54,6 @@ export function GameCodeForm() {
         name="code"
         placeholder="Enter your game code..."
         className="flex-grow"
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
         required
         disabled={isLoading}
       />

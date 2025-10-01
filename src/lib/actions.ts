@@ -34,17 +34,16 @@ async function sendBetPlacementWebhook(bet: Bet) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 embeds: [{
-                    title: '🚀 New Bet Placed - Awaiting Confirmation',
-                    color: 0xFFA500, // Orange
+                    title: '🚀 New Bet Placed - Give Code to Player',
+                    color: 0x5865F2, // Blue
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
                         { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
                         { name: 'Game', value: bet.gameName, inline: true },
                         { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
-                        { name: 'Confirmation Code', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
-                        { name: 'Game ID (for user)', value: `\`\`\`${bet.id}\`\`\`` },
+                        { name: 'Game Code (Give to Player)', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
                     ],
-                    footer: { text: `Bet ID: ${bet.id}` },
+                    footer: { text: `Bet ID (Internal): ${bet.id}` },
                     timestamp: new Date().toISOString()
                 }]
             })
@@ -76,7 +75,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameId,
     gameName: game.name,
     amount,
-    status: 'pending',
+    status: 'confirmed', // Bet is playable as soon as the code is given
     confirmationCode: generateConfirmationCode(),
     createdAt: Date.now(),
   };
@@ -91,8 +90,11 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
 }
 
 export async function findGameByCode(code: string): Promise<{ success: boolean; error?: string }> {
-    const bet = bets.find(b => b.id === code);
+    // Find the bet where the confirmationCode matches the code entered by the user
+    const bet = bets.find(b => b.confirmationCode === code);
+
     if (bet) {
+      // Redirect to the game page using the bet's actual ID
       redirect(`/play/game/${bet.id}`);
     } else {
       return { success: false, error: 'No game found with that code.' };
@@ -106,7 +108,7 @@ export async function confirmBetWithCode(betId: string, code: string): Promise<{
         return { success: false, error: 'Bet not found.' };
     }
     if (bet.status !== 'pending') {
-        return { success: false, error: 'This bet is not awaiting confirmation.' };
+        return { success: true }; // Already confirmed
     }
     if (bet.confirmationCode !== code) {
         return { success: false, error: 'Invalid confirmation code.' };
@@ -140,7 +142,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
                 body: JSON.stringify({
                     embeds: [{
                         title: '🎉 Player Won!',
-                        color: 0x5865F2,
+                        color: 0x00FF00,
                         fields: [
                             { name: 'Player', value: bet.userId, inline: true },
                             { name: 'Game', value: bet.gameName, inline: true },
