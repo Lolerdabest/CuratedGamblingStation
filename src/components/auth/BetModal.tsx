@@ -21,7 +21,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
-import { games } from '@/lib/data';
 
 interface BetModalProps {
   game: Game;
@@ -56,10 +55,10 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
   });
 
   const handleClose = () => {
+    if (isSubmitting) return;
     onClose();
     setTimeout(() => {
       form.reset();
-      setIsSubmitting(false);
     }, 300);
   };
 
@@ -109,7 +108,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-secondary border-primary/30">
+      <DialogContent className="sm:max-w-[425px] bg-card border-border">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <DialogHeader>
@@ -119,7 +118,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                 </DialogTitle>
                 <DialogDescription>
                   To confirm your bet, please pay in-game using:
-                  <code className="bg-background/50 text-primary font-bold p-1 rounded-md text-sm block my-2 text-center">
+                  <code className="bg-background font-bold p-1 rounded-md text-sm block my-2 text-center">
                     /pay Lolerdabest69 {'<amount>'}
                   </code>
                    Once paid, an admin will confirm your bet.

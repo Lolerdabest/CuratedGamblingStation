@@ -5,27 +5,28 @@ import { GameCard } from '@/components/shared/GameCard';
 import { BetModal } from '@/components/auth/BetModal';
 import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
-import { Separator } from '@/components/ui/separator';
 import { GameCodeForm } from '@/components/play/GameCodeForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useSearchParams } from 'next/navigation';
 
 export default function Home() {
   const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    const gameId = searchParams.get('game');
+    if (gameId) {
+      const game = games.find((g) => g.id === gameId);
+      if (game) {
+        setSelectedGame(game);
+      }
+    }
+  }, [searchParams]);
 
   return (
     <>
       <div className="container mx-auto px-4 py-8 md:py-16">
-        <section className="text-center mb-12 md:mb-20">
-          <h1 className="text-4xl md:text-6xl font-headline font-bold mb-4 text-primary animate-fade-in-down">
-            BlockChain
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto animate-fade-in-up">
-            The ultimate provably fair gambling experience, powered by your Minecraft server.
-          </p>
-        </section>
-
         <section className="mb-12 md:mb-20">
-          <h2 className="text-3xl font-headline font-bold text-center mb-8">Choose Your Game</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {games.map((game, index) => (
               <div
@@ -42,10 +43,8 @@ export default function Home() {
           </div>
         </section>
 
-        <Separator className="my-12 md:my-20" />
-
         <section>
-          <Card className="max-w-xl mx-auto bg-secondary border-primary/20">
+          <Card className="max-w-xl mx-auto bg-card">
             <CardHeader>
               <CardTitle className="text-center font-headline text-2xl">Have a Game Code?</CardTitle>
             </CardHeader>

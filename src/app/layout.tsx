@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import {
+  SidebarProvider,
+} from '@/components/ui/sidebar';
+import AppLayout from '@/components/layout/AppLayout';
 
 export const metadata: Metadata = {
   title: 'BlockChain - Minecraft Gambling',
@@ -25,11 +27,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
-        <div className="relative flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
+        <SidebarProvider>
+          <AppLayout>{children}</AppLayout>
+        </SidebarProvider>
         <Toaster />
       </body>
     </html>
