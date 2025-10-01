@@ -20,6 +20,7 @@ import { placeBet } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 interface BetModalProps {
   game: Game;
@@ -28,10 +29,9 @@ interface BetModalProps {
 }
 
 export function BetModal({ game, isOpen, onClose }: BetModalProps) {
-  const [step, setStep] = React.useState(1);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [submittedData, setSubmittedData] = React.useState<{ amount: number; minecraftUsername: string } | null>(null);
   const { toast } = useToast();
+  const router = useRouter();
 
   const formSchema = z.object({
     minecraftUsername: z.string().min(3, {
@@ -59,9 +59,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     // Delay resetting form to allow dialog to close smoothly
     setTimeout(() => {
       form.reset();
-      setStep(1);
       setIsSubmitting(false);
-      setSubmittedData(null);
     }, 300);
   };
 
@@ -75,9 +73,13 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
         amount: values.amount,
       });
 
-      if (result.success) {
-        setSubmittedData(values);
-        setStep(2);
+      if (result.success && result.bet) {
+        toast({
+            title: 'Bet Confirmed!',
+            description: 'Your game is ready to play.',
+        });
+        handleClose();
+        router.push(`/play/game/${result.bet.id}`);
       } else {
         toast({
           variant: 'destructive',
@@ -99,7 +101,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] bg-secondary border-primary/30">
-        {step === 1 && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <DialogHeader>
@@ -157,32 +158,11 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Place Bet
+                  Place Bet & Play
                 </Button>
               </DialogFooter>
             </form>
           </Form>
-        )}
-        {step === 2 && submittedData && (
-          <>
-            <DialogHeader>
-              <DialogTitle className="font-headline text-2xl text-primary">Bet Placed!</DialogTitle>
-              <DialogDescription>
-                Your bet has been submitted. Please complete the payment in Minecraft.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="my-4 p-4 bg-background/50 rounded-lg space-y-2">
-                <p className="text-sm text-muted-foreground">To finalize your bet, send <span className="font-bold text-primary">{submittedData.amount}</span> currency in-game using the command below:</p>
-                <div className="p-3 bg-black rounded-md">
-                    <code className="font-code text-accent">/pay Lolerdabest69 {submittedData.amount}</code>
-                </div>
-                <p className="text-xs text-muted-foreground pt-2">Once an admin confirms your payment, you can find your active game by searching for your username on the 'Play' page.</p>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleClose} className="w-full">Close</Button>
-            </DialogFooter>
-          </>
-        )}
       </DialogContent>
     </Dialog>
   );
