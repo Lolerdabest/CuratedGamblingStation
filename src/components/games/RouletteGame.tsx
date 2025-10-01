@@ -45,8 +45,16 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
             const winnerColor = numberColors[winner];
             const didWin = winnerColor === betChoice;
             const payout = didWin ? bet.amount * 2 : 0;
-            await resolveGame(bet.id, didWin ? 'win' : 'loss', payout);
-            toast({ title: `The ball landed on ${winner} (${winnerColor})`, description: didWin ? `You won ${payout}!` : "You lost." });
+            const gameResult = await resolveGame(bet.id, didWin ? 'win' : 'loss', payout);
+            
+            if (gameResult.success) {
+                toast({ 
+                    title: `The ball landed on ${winner} (${winnerColor})`, 
+                    description: didWin ? `You won ${payout}!` : "You lost." 
+                });
+            } else {
+                 toast({ variant: 'destructive', title: 'Error', description: 'Could not save game result.'});
+            }
         });
     }, 4000);
   };
@@ -55,15 +63,21 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     <Card className="max-w-lg mx-auto bg-secondary border-primary/20 text-center">
       <CardContent className="p-6 space-y-6">
         <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
-            <Icons.roulette className={cn("w-full h-full text-primary/30", isSpinning && "animate-[spin_4s_cubic-bezier(0.25,1,0.5,1)_forwards]")} />
-            <div className="absolute w-4 h-4 bg-accent rounded-full shadow-lg" style={{
-                animation: isSpinning ? 'spin-ball 4s cubic-bezier(0.6, 0, 0.4, 1) forwards' : 'none',
-                transformOrigin: '0px 100px',
-            }} />
-             <style jsx>{`
-                @keyframes spin-ball {
-                    0% { transform: rotate(0deg) translateX(100px) rotate(0deg); }
-                    100% { transform: rotate(1440deg) translateX(100px) rotate(-1440deg); }
+            <Icons.roulette className={cn("w-full h-full text-primary/30 transition-transform duration-[4000ms] ease-[cubic-bezier(0.25,1,0.5,1)]", isSpinning && "rotate-[1440deg]")} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className={cn("absolute w-3 h-3 bg-white rounded-full shadow-lg transition-transform duration-[4000ms]", {
+                    'animate-roulette-ball': isSpinning,
+                })} />
+            </div>
+
+            <style jsx>{`
+                @keyframes roulette-ball {
+                    0% { transform: rotate(0deg) translateY(-80px) rotate(0deg) scale(1); }
+                    80% { transform: rotate(1440deg) translateY(-80px) rotate(-1440deg) scale(1); }
+                    100% { transform: rotate(1500deg) translateY(0px) rotate(-1500deg) scale(1.5); }
+                }
+                .animate-roulette-ball {
+                    animation: roulette-ball 4s cubic-bezier(0.3, 0, 0.4, 1) forwards;
                 }
             `}</style>
 
@@ -71,8 +85,11 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
                 <div className="absolute flex flex-col items-center justify-center animate-fade-in-up">
                     <p className='text-sm text-muted-foreground'>Winner</p>
                     <p className={cn("text-4xl font-bold", 
-                        numberColors[winningNumber] === 'red' ? 'text-red-500' :
-                        numberColors[winningNumber] === 'black' ? 'text-gray-300' : 'text-green-500'
+                        {
+                            'text-red-500': numberColors[winningNumber] === 'red',
+                            'text-slate-300': numberColors[winningNumber] === 'black',
+                            'text-green-500': numberColors[winningNumber] === 'green'
+                        }
                     )}>{winningNumber}</p>
                 </div>
             )}
@@ -82,25 +99,33 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
           <p className="text-muted-foreground mb-4">Place your bet:</p>
           <div className="grid grid-cols-2 gap-4">
             <Button
-              variant={betChoice === 'red' ? 'default' : 'outline'}
               onClick={() => setBetChoice('red')}
               disabled={isSpinning || winningNumber !== null}
-              className="py-6 text-lg bg-red-500/80 hover:bg-red-500 text-white data-[state=selected]:ring-2 data-[state=selected]:ring-accent"
+              className={cn(
+                "py-6 text-lg text-white font-bold transition-all",
+                "bg-red-500/80 hover:bg-red-500",
+                betChoice !== 'red' && betChoice !== null && "opacity-50",
+                betChoice === 'red' && "ring-2 ring-offset-2 ring-offset-background ring-accent"
+              )}
             >
               Red
             </Button>
             <Button
-              variant={betChoice === 'black' ? 'default' : 'outline'}
               onClick={() => setBetChoice('black')}
               disabled={isSpinning || winningNumber !== null}
-              className="py-6 text-lg bg-gray-700/80 hover:bg-gray-700 text-white"
+              className={cn(
+                "py-6 text-lg text-white font-bold transition-all",
+                "bg-gray-800 hover:bg-gray-700",
+                 betChoice !== 'black' && betChoice !== null && "opacity-50",
+                 betChoice === 'black' && "ring-2 ring-offset-2 ring-offset-background ring-accent"
+              )}
             >
               Black
             </Button>
           </div>
         </div>
 
-        <Button onClick={handleSpin} disabled={isSpinning || isPending || winningNumber !== null} className="w-full">
+        <Button onClick={handleSpin} disabled={isSpinning || isPending || winningNumber !== null || !betChoice} className="w-full">
           {(isSpinning || isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSpinning ? 'Spinning...' : winningNumber !== null ? 'Game Over' : 'Spin the Wheel'}
         </Button>

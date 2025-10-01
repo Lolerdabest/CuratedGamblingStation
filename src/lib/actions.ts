@@ -164,12 +164,13 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     
     await sendDiscordWebhook({
         title: `Game Finished: ${result === 'win' ? 'Win' : 'Loss'}`,
-        color: result === 'win' ? 0x2ecc71 : 0xe74c3c, // Green for win, Red for loss
+        color: result === 'win' ? 0x2ecc71 : 0xe74c3c,
         fields: [
             { name: 'Player', value: updatedBet.userId, inline: true },
             { name: 'Game', value: updatedBet.gameName, inline: true },
             { name: 'Amount Bet', value: updatedBet.amount.toLocaleString(), inline: true },
             { name: 'Payout', value: updatedBet.payout?.toLocaleString() ?? '0', inline: true },
+            { name: 'Game Details', value: '`' + JSON.stringify(updatedBet.gameOptions) + '`'}
         ],
         timestamp: new Date().toISOString(),
     });
