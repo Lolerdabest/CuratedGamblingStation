@@ -69,6 +69,8 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     return { success: false, error: 'Game not found.' };
   }
 
+  const allBets = await db.getBets();
+
   const newBet: Bet = {
     id: `bet_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     userId,
@@ -81,7 +83,8 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     createdAt: Date.now(),
   };
 
-  db.bets.unshift(newBet);
+  allBets.unshift(newBet);
+  await db.setBets(allBets);
   
   await sendDiscordWebhook({
     title: 'New Bet Placed',
@@ -103,27 +106,33 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
-    return db.bets.find((b) => b.id === betId);
+    const allBets = await db.getBets();
+    return allBets.find((b) => b.id === betId);
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {
-  return db.bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase()).sort((a, b) => b.createdAt - a.createdAt);
+  const allBets = await db.getBets();
+  return allBets.filter((b) => b.userId.toLowerCase() === username.toLowerCase()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function getAllBets(): Promise<Bet[]> {
-    return db.bets.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
+    const allBets = await db.getBets();
+    return allBets.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
 }
 
 export async function confirmBet(betId: string) {
-    const betIndex = db.bets.findIndex((b) => b.id === betId);
+    const allBets = await db.getBets();
+    const betIndex = allBets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
     }
     
     const accessCode = generateAccessCode();
-    db.bets[betIndex].status = 'confirmed';
-    db.bets[betIndex].accessCode = accessCode;
-    const bet = db.bets[betIndex];
+    allBets[betIndex].status = 'confirmed';
+    allBets[betIndex].accessCode = accessCode;
+    const bet = allBets[betIndex];
+
+    await db.setBets(allBets);
 
     await sendDiscordWebhook({
         title: 'Bet Confirmed!',
@@ -144,7 +153,8 @@ export async function confirmBet(betId: string) {
 
 
 export async function findGameByCode(code: string) {
-  const bet = db.bets.find(b => b.accessCode === code && b.status === 'confirmed');
+  const allBets = await db.getBets();
+  const bet = allBets.find(b => b.accessCode === code && b.status === 'confirmed');
 
   if (bet) {
     return { success: true, url: `/play/game/${bet.id}` };
@@ -155,11 +165,12 @@ export async function findGameByCode(code: string) {
 
 
 export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number, gameOptions?: Record<string, any>) {
-    const betIndex = db.bets.findIndex((b) => b.id === betId);
+    const allBets = await db.getBets();
+    const betIndex = allBets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
     }
-    const bet = db.bets[betIndex];
+    const bet = allBets[betIndex];
 
     const statusMap = {
         'win': 'won',
@@ -169,11 +180,13 @@ export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push'
 
     const status = statusMap[result];
 
-    db.bets[betIndex] = { ...bet, status: status, payout: payout };
+    allBets[betIndex] = { ...bet, status: status, payout: payout };
      if (gameOptions) {
-        db.bets[betIndex].gameOptions = { ...bet.gameOptions, ...gameOptions };
+        allBets[betIndex].gameOptions = { ...bet.gameOptions, ...gameOptions };
     }
-    const updatedBet = db.bets[betIndex];
+    const updatedBet = allBets[betIndex];
+
+    await db.setBets(allBets);
     
     const colorMap = { 'win': 0x2ecc71, 'loss': 0xe74c3c, 'push': 0xaaaaaa };
 
