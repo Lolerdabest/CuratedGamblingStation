@@ -6,21 +6,50 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle, Clock, Gamepad2, ShieldCheck, Hourglass } from 'lucide-react';
+import { AlertCircle, CheckCircle, Gamepad2, Hourglass, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bet } from '@/lib/types';
 
 export default function UserHistoryPage({ params }: { params: { username: string } }) {
   const [bets, setBets] = useState<Bet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchBets() {
+      setIsLoading(true);
       const userBets = await getUserBets(params.username);
       setBets(userBets);
+      setIsLoading(false);
     }
     fetchBets();
   }, [params.username]);
 
+
+  if (isLoading) {
+      return (
+          <div className="container mx-auto px-4 py-8">
+               <h1 className="text-3xl font-headline font-bold mb-6">
+                <span className="text-muted-foreground">Games for:</span> <span className="text-primary">{decodeURIComponent(params.username)}</span>
+                </h1>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <Card key={i} className="flex flex-col bg-secondary border-primary/20 animate-pulse">
+                            <CardHeader>
+                                <div className="h-6 bg-muted-foreground/20 rounded-md w-3/4"></div>
+                                <div className="h-4 bg-muted-foreground/20 rounded-md w-1/2 mt-2"></div>
+                            </CardHeader>
+                            <CardContent className="flex-grow space-y-4">
+                               <div className="h-12 bg-muted-foreground/20 rounded-md w-full"></div>
+                            </CardContent>
+                             <CardFooter>
+                                <div className="h-10 bg-muted-foreground/20 rounded-md w-full"></div>
+                             </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+          </div>
+      )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
