@@ -68,25 +68,43 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
 
   return (
     <Card className="max-w-lg mx-auto bg-secondary border-primary/20 text-center">
+      <style jsx>{`
+        @keyframes spin-ball {
+          0% {
+            transform: rotate(0deg) translateX(95px) rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg) translateX(95px) rotate(-360deg);
+          }
+        }
+        .ball {
+          animation: spin-ball 1s linear infinite;
+        }
+        .ball-container.spinning {
+          transition: transform 3.8s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+      `}</style>
       <CardContent className="p-6 space-y-6">
         <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
-            <div className='absolute top-0 left-1/2 -translate-x-1/2 -mt-2 w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-white z-10'></div>
-            <Icons.roulette 
-                className={cn("w-full h-full transition-transform duration-[3800ms] ease-[cubic-bezier(0.25,1,0.5,1)]")}
-                style={{ transform: `rotate(${rotation}deg)`}}
-            />
-            {winningNumber !== null && !isSpinning && (
-                <div className="absolute flex flex-col items-center justify-center animate-scale-in">
-                    <p className='text-sm text-muted-foreground'>Winner</p>
-                    <p className={cn("text-4xl font-bold", 
-                        {
-                            'text-red-500': numberColors[winningNumber] === 'red',
-                            'text-slate-300': numberColors[winningNumber] === 'black',
-                            'text-green-500': numberColors[winningNumber] === 'green'
-                        }
-                    )}>{winningNumber}</p>
-                </div>
-            )}
+          <Icons.roulette className="w-full h-full" />
+          <div
+            className={cn("ball-container absolute w-full h-full", isSpinning && "spinning")}
+            style={{ transform: `rotate(${rotation}deg)` }}
+          >
+            <div className="absolute top-1/2 left-1/2 -mt-2 -ml-2 w-4 h-4 rounded-full bg-white shadow-lg ball"></div>
+          </div>
+          {winningNumber !== null && !isSpinning && (
+            <div className="absolute flex flex-col items-center justify-center animate-scale-in">
+              <p className='text-sm text-muted-foreground'>Winner</p>
+              <p className={cn("text-4xl font-bold", 
+                  {
+                      'text-red-500': numberColors[winningNumber] === 'red',
+                      'text-slate-300': numberColors[winningNumber] === 'black',
+                      'text-green-500': numberColors[winningNumber] === 'green'
+                  }
+              )}>{winningNumber}</p>
+            </div>
+          )}
         </div>
 
         <div>
