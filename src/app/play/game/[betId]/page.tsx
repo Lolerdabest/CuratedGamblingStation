@@ -1,6 +1,7 @@
 import { getBet } from '@/lib/actions';
 import { notFound } from 'next/navigation';
 import GameContainer from '@/components/games/GameContainer';
+import { ConfirmationProvider } from '@/components/play/ConfirmationProvider';
 import {
     Card,
     CardContent,
@@ -19,8 +20,15 @@ export default async function GamePage({ params }: { params: { betId: string } }
     notFound();
   }
 
-  // Since bets are auto-confirmed, we no longer need a "not ready" state.
-  // We just need to handle the case where the game is already finished.
+  // If bet is pending, show the confirmation screen.
+  // Otherwise (confirmed, won, lost), show the game container.
+  if (bet.status === 'pending') {
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <ConfirmationProvider bet={bet} />
+        </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

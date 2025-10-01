@@ -37,8 +37,8 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     minecraftUsername: z.string().min(3, {
       message: 'Minecraft username must be at least 3 characters.',
     }),
-    discordTag: z.string().regex(/^.{3,32}#\d{4}$/, {
-      message: 'Please enter a valid Discord tag (e.g., user#1234).',
+    discordTag: z.string().min(2, {
+        message: 'Please enter your Discord username.',
     }),
     amount: z
       .number({ coerce: true })
@@ -75,8 +75,8 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
       if (result.success && result.bet) {
         toast({
-            title: 'Bet Confirmed!',
-            description: 'Your game is ready to play.',
+            title: 'Bet Placed!',
+            description: 'Your game is awaiting confirmation. Check with an admin.',
         });
         handleClose();
         router.push(`/play/game/${result.bet.id}`);
@@ -109,7 +109,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details and bet amount. Minimum bet is {game.minBet}.
+                  Enter your details and bet amount. Minimum bet is {game.minBet}. An admin will provide you a code to play.
                 </DialogDescription>
               </DialogHeader>
 
@@ -132,9 +132,9 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   name="discordTag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discord Tag</FormLabel>
+                      <FormLabel>Discord Username</FormLabel>
                       <FormControl>
-                        <Input placeholder="notch#0001" {...field} />
+                        <Input placeholder="notch" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -158,7 +158,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Place Bet & Play
+                  Place Bet
                 </Button>
               </DialogFooter>
             </form>

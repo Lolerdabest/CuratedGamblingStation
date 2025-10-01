@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ArrowRight, CheckCircle, CircleDashed, Hourglass, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { ArrowRight, CheckCircle, CircleDashed, Hourglass, ThumbsDown, ThumbsUp, ShieldCheck } from 'lucide-react';
 import { Game, games } from '@/lib/data';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +39,9 @@ export default async function UserGamesPage({ params }: { params: { username: st
         <div className="space-y-4">
           {userBets.map((bet) => {
              const GameIcon = gameIcons.get(bet.gameId) || Hourglass;
+             const isPlayable = bet.status === 'confirmed';
+             const isPending = bet.status === 'pending';
+             const isFinished = bet.status === 'won' || bet.status === 'lost';
             return (
               <Card key={bet.id} className="bg-secondary border-primary/20 flex flex-col md:flex-row items-start md:items-center justify-between p-4 gap-4">
                 <div className="flex items-center gap-4 flex-1">
@@ -52,14 +55,16 @@ export default async function UserGamesPage({ params }: { params: { username: st
                 </div>
 
                 <div className="flex items-center gap-4 w-full md:w-auto">
-                    {bet.status === 'pending' && <Badge variant="secondary"><CircleDashed className="mr-2 h-4 w-4" />Waiting for confirmation</Badge>}
-                    {bet.status === 'confirmed' && <Badge variant="outline" className="text-accent border-accent"><Hourglass className="mr-2 h-4 w-4" />Ready to Play</Badge>}
+                    {isPending && <Badge variant="secondary"><CircleDashed className="mr-2 h-4 w-4" />Awaiting Confirmation</Badge>}
+                    {isPlayable && <Badge variant="outline" className="text-accent border-accent"><Hourglass className="mr-2 h-4 w-4" />Ready to Play</Badge>}
                     {bet.status === 'won' && <Badge className="bg-green-600/80"><ThumbsUp className="mr-2 h-4 w-4" />Won {bet.payout?.toLocaleString()}</Badge>}
                     {bet.status === 'lost' && <Badge variant="destructive"><ThumbsDown className="mr-2 h-4 w-4" />Lost</Badge>}
                   
-                    <Button asChild variant={bet.status === 'confirmed' ? 'default' : 'outline'} disabled={bet.status !== 'confirmed'} className="w-full md:w-auto">
+                    <Button asChild variant={isPlayable || isPending ? 'default' : 'outline'} className="w-full md:w-auto">
                         <Link href={`/play/game/${bet.id}`}>
-                            {bet.status === 'confirmed' ? 'Play' : 'View'}
+                            {isPending && 'Confirm Bet'}
+                            {isPlayable && 'Play'}
+                            {isFinished && 'View Result'}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>

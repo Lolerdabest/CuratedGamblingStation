@@ -16,6 +16,43 @@ const placeBetSchema = z.object({
   amount: z.number(),
 });
 
+// --- Helper Functions ---
+function generateConfirmationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendBetPlacementWebhook(bet: Bet) {
+    if (!process.env.DISCORD_WEBHOOK_URL) {
+        console.warn('DISCORD_WEBHOOK_URL not set. Skipping webhook notification.');
+        return;
+    }
+
+    try {
+        await fetch(process.env.DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                embeds: [{
+                    title: '🚀 New Bet Placed - Awaiting Confirmation',
+                    color: 0xFFA500, // Orange
+                    fields: [
+                        { name: 'Player', value: bet.userId, inline: true },
+                        { name: 'Discord', value: bet.discordTag, inline: true },
+                        { name: 'Game', value: bet.gameName, inline: true },
+                        { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
+                        { name: 'Confirmation Code', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
+                    ],
+                    footer: { text: `Bet ID: ${bet.id}` },
+                    timestamp: new Date().toISOString()
+                }]
+            })
+        });
+    } catch (error) {
+        console.error('Failed to send Discord webhook for bet placement:', error);
+    }
+}
+
+
 // --- Public Actions ---
 
 export async function placeBet(input: z.infer<typeof placeBetSchema>) {
@@ -37,33 +74,40 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameId,
     gameName: game.name,
     amount,
-    status: 'confirmed', // Auto-confirming the bet
+    status: 'pending',
+    confirmationCode: generateConfirmationCode(),
     createdAt: Date.now(),
   };
 
   bets.unshift(newBet);
+  
+  // Send webhook notification
+  await sendBetPlacementWebhook(newBet);
+
   revalidatePath(`/play/user/${encodeURIComponent(userId)}`);
   return { success: true, bet: newBet };
 }
 
-export async function getBetsForAdmin(): Promise<Bet[]> {
-  // This function is no longer used by the UI but kept for potential future use.
-  return [...bets].sort((a, b) => b.createdAt - a.createdAt);
-}
-
-export async function confirmBet(betId: string): Promise<{ success: boolean; message: string; newStatus?: BetStatus }> {
-    // This function is no longer called from the UI.
-    // Kept for potential future use or direct invocation if needed.
+export async function confirmBetWithCode(betId: string, code: string): Promise<{ success: boolean; error?: string }> {
     const bet = bets.find((b) => b.id === betId);
+
     if (!bet) {
-      return { success: false, message: 'Bet not found.' };
+        return { success: false, error: 'Bet not found.' };
     }
-  
+    if (bet.status !== 'pending') {
+        return { success: false, error: 'This bet is not awaiting confirmation.' };
+    }
+    if (bet.confirmationCode !== code) {
+        return { success: false, error: 'Invalid confirmation code.' };
+    }
+
     bet.status = 'confirmed';
+
+    revalidatePath(`/play/game/${betId}`);
     revalidatePath(`/play/user/${encodeURIComponent(bet.userId)}`);
-    return { success: true, message: 'Bet confirmed!', newStatus: 'confirmed' };
+
+    return { success: true };
 }
-  
 
 export async function getUserBets(username: string): Promise<Bet[]> {
   return bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase())
@@ -83,7 +127,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     bet.status = result === 'win' ? 'won' : 'lost';
     bet.payout = payout;
     
-    if(result === 'win' && process.env.DISCORD_WEBHOOK_URL){
+    if(result === 'win' && payout > 0 && process.env.DISCORD_WEBHOOK_URL){
         try {
             await fetch(process.env.DISCORD_WEBHOOK_URL, {
                 method: 'POST',
