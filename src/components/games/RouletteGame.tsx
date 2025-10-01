@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Bet } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,7 +29,18 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
   const [betChoice, setBetChoice] = useState<BetChoice | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winningNumber, setWinningNumber] = useState<number | null>(null);
-  const [rotation, setRotation] = useState(0);
+  const [ballAnimation, setBallAnimation] = useState<React.CSSProperties>({});
+  const [animationName, setAnimationName] = useState('none');
+
+  useEffect(() => {
+    // Cleanup animation style tag on component unmount
+    return () => {
+      const styleTag = document.getElementById('roulette-spin-animation');
+      if (styleTag) {
+        styleTag.remove();
+      }
+    };
+  }, []);
 
   const handleSpin = () => {
     if (!betChoice) {
@@ -38,17 +50,38 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     setIsSpinning(true);
     setWinningNumber(null);
 
-    const randomIndex = Math.floor(Math.random() * numbers.length);
-    const winner = numbers[randomIndex];
+    const winner = numbers[Math.floor(Math.random() * numbers.length)];
+    const winnerIndex = numbers.indexOf(winner);
 
-    const finalAngle = -(randomIndex * ANGLE_PER_SEGMENT + ANGLE_PER_SEGMENT / 2);
-    const fullSpins = 4;
-    const newRotation = rotation + (360 * fullSpins) + finalAngle;
-    setRotation(newRotation);
+    const endAngle = (winnerIndex * ANGLE_PER_SEGMENT);
+    const fullSpins = 4 * 360;
+    const finalAngle = fullSpins + endAngle;
+
+    const spinKeyframes = `
+      @keyframes roulette-spin {
+        0% { transform: rotate(0deg) translateX(95px) rotate(0deg); }
+        80% { transform: rotate(${finalAngle}deg) translateX(95px) rotate(-${finalAngle}deg); }
+        100% { transform: rotate(${finalAngle}deg) translateX(95px) rotate(-${finalAngle}deg); }
+      }
+    `;
+
+    let styleTag = document.getElementById('roulette-spin-animation');
+    if (!styleTag) {
+        styleTag = document.createElement('style');
+        styleTag.id = 'roulette-spin-animation';
+        document.head.appendChild(styleTag);
+    }
+    styleTag.innerHTML = spinKeyframes;
     
+    const newAnimationName = `roulette-spin-${Date.now()}`;
+    styleTag.innerHTML = styleTag.innerHTML.replace('roulette-spin', newAnimationName);
+
+    setAnimationName(newAnimationName);
+
     setTimeout(() => {
         setWinningNumber(winner);
         setIsSpinning(false);
+        setAnimationName('none'); // Stop animation
 
         startTransition(async () => {
             const winnerColor = numberColors[winner];
@@ -68,31 +101,18 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
 
   return (
     <Card className="max-w-lg mx-auto bg-secondary border-primary/20 text-center">
-      <style jsx>{`
-        @keyframes spin-ball {
-          0% {
-            transform: rotate(0deg) translateX(95px) rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg) translateX(95px) rotate(-360deg);
-          }
-        }
-        .ball {
-          animation: spin-ball 1s linear infinite;
-        }
-        .ball-container.spinning {
-          transition: transform 3.8s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-      `}</style>
       <CardContent className="p-6 space-y-6">
         <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
           <Icons.roulette className="w-full h-full" />
-          <div
-            className={cn("ball-container absolute w-full h-full", isSpinning && "spinning")}
-            style={{ transform: `rotate(${rotation}deg)` }}
-          >
-            <div className="absolute top-1/2 left-1/2 -mt-2 -ml-2 w-4 h-4 rounded-full bg-white shadow-lg ball"></div>
-          </div>
+           <div
+            className="absolute top-1/2 left-1/2 -mt-2 -ml-2 w-4 h-4 rounded-full bg-white shadow-lg"
+            style={{ 
+              animationName, 
+              animationDuration: isSpinning ? '4s' : '0s',
+              animationTimingFunction: isSpinning ? 'cubic-bezier(0.2, 0.8, 0.7, 1)' : 'linear',
+              animationFillMode: 'forwards',
+            }}
+          ></div>
           {winningNumber !== null && !isSpinning && (
             <div className="absolute flex flex-col items-center justify-center animate-scale-in">
               <p className='text-sm text-muted-foreground'>Winner</p>
@@ -145,3 +165,5 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     </Card>
   );
 }
+
+    
