@@ -14,7 +14,7 @@ export default async function UserHistoryPage({ params }: { params: { username: 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-headline font-bold mb-6">
-        <span className="text-muted-foreground">Games for:</span> <span className="text-primary">{params.username}</span>
+        <span className="text-muted-foreground">Games for:</span> <span className="text-primary">{decodeURIComponent(params.username)}</span>
       </h1>
       
       {bets.length === 0 ? (
@@ -59,6 +59,12 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                     <div className="flex items-center gap-3 p-3 rounded-md bg-red-500/10 text-red-400">
                         <AlertCircle className="w-5 h-5 shrink-0"/>
                         <p className="text-sm">You lost this game. Better luck next time.</p>
+                    </div>
+                 )}
+                 {bet.status === 'confirmed' && (
+                    <div className="flex items-center gap-3 p-3 rounded-md bg-blue-500/10 text-blue-400">
+                        <CheckCircle className="w-5 h-5 shrink-0"/>
+                        <p className="text-sm">Your game is ready to be played!</p>
                     </div>
                  )}
               </CardContent>

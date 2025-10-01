@@ -7,7 +7,11 @@ import type { Bet } from './types';
 import { redirect } from 'next/navigation';
 
 // In a real app, this would be a database (e.g., Firestore)
-let bets: Bet[] = [...mockBets];
+// By putting it in a separate object, we can better simulate a persistent store in dev.
+const db = {
+  bets: [...mockBets] as Bet[]
+};
+
 
 // --- Schemas ---
 const placeBetSchema = z.object({
@@ -32,7 +36,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
                 embeds: [{
                     title: '⏳ New Bet Awaiting Confirmation',
                     color: 0xFFA500, // Orange
-                    description: 'Go to the admin panel to confirm this payment.',
+                    description: `Go to the admin panel to confirm this payment. The Game ID is \`${bet.id}\`.`,
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
                         { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
@@ -75,7 +79,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     createdAt: Date.now(),
   };
 
-  bets.unshift(newBet);
+  db.bets.unshift(newBet);
   
   await sendBetPlacementWebhook(newBet);
 
@@ -84,27 +88,31 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
-    return bets.find((b) => b.id === betId);
+    return db.bets.find((b) => b.id === betId);
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {
-  return bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase());
+  return db.bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase());
 }
 
 export async function getAllBets(): Promise<Bet[]> {
-    return bets.sort((a, b) => b.createdAt - a.createdAt);
+    return db.bets.sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function confirmBet(betId: string): Promise<{ success: boolean, error?: string }> {
-    const bet = bets.find(b => b.id === betId);
-    if (!bet) {
+    const betIndex = db.bets.findIndex(b => b.id === betId);
+    if (betIndex === -1) {
         return { success: false, error: "Bet not found." };
     }
+    
+    const bet = db.bets[betIndex];
+
     if (bet.status !== 'pending') {
         return { success: false, error: "Bet is not pending confirmation." };
     }
 
-    bet.status = 'confirmed';
+    // Update the bet status
+    db.bets[betIndex] = { ...bet, status: 'confirmed' };
     
     // Optional: Send a confirmation webhook to Discord
     if (process.env.DISCORD_WEBHOOK_URL) {
@@ -140,13 +148,13 @@ export async function confirmBet(betId: string): Promise<{ success: boolean, err
 
 
 export async function resolveGame(betId: string, result: 'win' | 'loss', payout: number) {
-    const bet = bets.find((b) => b.id === betId);
-    if (!bet) {
+    const betIndex = db.bets.findIndex((b) => b.id === betId);
+    if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
     }
+    const bet = db.bets[betIndex];
 
-    bet.status = result === 'win' ? 'won' : 'lost';
-    bet.payout = payout;
+    db.bets[betIndex] = { ...bet, status: result === 'win' ? 'won' : 'lost', payout: payout };
     
     if(result === 'win' && payout > 0 && process.env.DISCORD_WEBHOOK_URL){
         try {
@@ -176,5 +184,5 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     revalidatePath('/admin');
     revalidatePath(`/play/user/${bet.userId}`);
 
-    return { success: true, bet };
+    return { success: true, bet: db.bets[betIndex] };
 }

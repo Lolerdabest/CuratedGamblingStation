@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface AdminDashboardClientProps {
   initialBets: Bet[];
@@ -25,6 +26,7 @@ interface AdminDashboardClientProps {
 
 export default function AdminDashboardClient({ initialBets }: AdminDashboardClientProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [bets, setBets] = React.useState(initialBets);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [confirmingId, setConfirmingId] = React.useState<string | null>(null);
@@ -45,6 +47,7 @@ export default function AdminDashboardClient({ initialBets }: AdminDashboardClie
             bet.id === betId ? { ...bet, status: 'confirmed' } : bet
           )
         );
+        router.refresh(); // Force a server-side refresh to get the latest data
       } else {
         toast({
           variant: 'destructive',
