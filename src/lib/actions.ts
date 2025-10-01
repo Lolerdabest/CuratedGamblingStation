@@ -122,22 +122,17 @@ export async function getAllBets(): Promise<Bet[]> {
     return allBets.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-// This function is no longer needed with the new flow.
-// export async function confirmBet(betId: string) { ... }
-
-
 export async function findGameByCode(code: string) {
   const allBets = await getBets();
-  const bet = allBets.find(b => b.accessCode === code && b.status === 'confirmed');
+  const bet = allBets.find(b => b.accessCode === code);
 
   if (bet) {
-    return { success: true, url: `/play/game/${bet.id}` };
-  } else {
-    // Check if the game was already played
-    const playedBet = allBets.find(b => b.accessCode === code && (b.status === 'won' || b.status === 'lost'));
-    if(playedBet) {
-        return { success: false, error: 'This game code has already been used.' };
+     if (bet.status === 'won' || bet.status === 'lost') {
+       return { success: false, error: 'This game code has already been used.' };
     }
+    // Redirect to the user's game list page
+    return { success: true, url: `/play/user/${bet.userId}` };
+  } else {
     return { success: false, error: 'Invalid game code.' };
   }
 }
