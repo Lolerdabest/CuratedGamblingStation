@@ -23,7 +23,8 @@ const numberColors: { [key: number]: 'red' | 'black' | 'green' } = {0: 'green', 
 const RouletteWheelIcon = ({ spinning }: { spinning: boolean }) => (
   <>
     <style jsx>{`
-      .wheel {
+      .ball {
+        transform-origin: 50% 50%;
         animation: ${spinning ? 'spin 2s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none'};
       }
       @keyframes spin {
@@ -36,35 +37,34 @@ const RouletteWheelIcon = ({ spinning }: { spinning: boolean }) => (
       }
     `}</style>
     <svg
-      className="wheel w-48 h-48"
+      className="w-48 h-48"
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* Static Wheel */}
       <circle cx="50" cy="50" r="48" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="2" />
       <circle cx="50" cy="50" r="40" fill="hsl(var(--background))" />
-      
-      {numbers.map((num, i) => {
-        const angle = (i / numbers.length) * 360;
-        const color = numberColors[num];
-        let slotColor = 'hsl(var(--muted-foreground))';
-        if (color === 'red') slotColor = 'hsl(0 63% 31%)';
-        if (color === 'black') slotColor = '#333';
-        if (color === 'green') slotColor = 'hsl(140 63% 31%)';
-
+      {Array.from({ length: 37 }).map((_, i) => {
+        const angle = (i / 37) * 360;
         return (
-          <path
-            key={num}
-            d={`M50,50 L${50 + 40 * Math.cos(angle * Math.PI / 180 - (0.5 / numbers.length * Math.PI))},${50 + 40 * Math.sin(angle * Math.PI / 180 - (0.5 / numbers.length * Math.PI))} A40,40 0 0,1 ${50 + 40 * Math.cos((angle + 360 / numbers.length) * Math.PI / 180 - (0.5 / numbers.length * Math.PI))},${50 + 40 * Math.sin((angle + 360 / numbers.length) * Math.PI / 180 - (0.5 / numbers.length * Math.PI))} Z`}
-            fill={slotColor}
+          <line
+            key={i}
+            x1="50"
+            y1="50"
+            x2={50 + 40 * Math.cos(angle * Math.PI / 180)}
+            y2={50 + 40 * Math.sin(angle * Math.PI / 180)}
+            stroke="hsl(var(--border))"
+            strokeWidth="1"
           />
         );
       })}
-      
       <circle cx="50" cy="50" r="15" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1" />
       <circle cx="50" cy="50" r="10" fill="hsl(var(--primary))" />
       
-      {/* Ball */}
-      <circle cx="50" cy="20" r="3" fill="white" />
+      {/* Spinning Ball */}
+      <g className="ball">
+        <circle cx="50" cy="20" r="3" fill="white" />
+      </g>
     </svg>
   </>
 );
@@ -112,9 +112,9 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     <Card className="max-w-md mx-auto bg-secondary border-primary/20 text-center">
       <CardContent className="p-6 space-y-6">
         <div className="h-48 flex items-center justify-center">
-          {isSpinning ? (
-             <RouletteWheelIcon spinning={true} />
-          ) : result ? (
+          {isSpinning || !result ? (
+             <RouletteWheelIcon spinning={isSpinning} />
+          ) : (
             <div className="animate-scale-in">
               <p className="text-sm text-muted-foreground">Landed on</p>
               <p className={cn("text-5xl font-bold", {
@@ -125,8 +125,6 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
                 {result.number}
               </p>
             </div>
-          ) : (
-             <RouletteWheelIcon spinning={false} />
           )}
         </div>
 
