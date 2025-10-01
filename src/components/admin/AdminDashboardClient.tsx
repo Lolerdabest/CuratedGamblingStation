@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Bet, BetStatus } from '@/lib/types';
-import { confirmBet, getBetsForAdmin } from '@/lib/actions';
+import { confirmBet } from '@/lib/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,9 +29,12 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
         title: 'Success',
         description: result.message,
       });
-       // Re-fetch data to ensure consistency
-       const updatedBets = await getBetsForAdmin();
-       setBets(updatedBets);
+      // Update local state to reflect the change immediately
+      setBets(currentBets => 
+        currentBets.map(b => 
+          b.id === betId ? { ...b, status: 'confirmed' } : b
+        )
+      );
        router.refresh();
     } else {
       toast({
