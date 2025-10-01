@@ -5,14 +5,9 @@ import { GameCard } from '@/components/shared/GameCard';
 import { BetModal } from '@/components/auth/BetModal';
 import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
   const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
-
-  const getImage = (id: string) => {
-    return PlaceHolderImages.find((img) => img.id === id)?.imageUrl || '';
-  };
 
   return (
     <>
@@ -36,7 +31,6 @@ export default function Home() {
               >
                 <GameCard
                   game={game}
-                  imageUrl={getImage(game.id)}
                   onPlayClick={() => setSelectedGame(game)}
                 />
               </div>

@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Game } from '@/lib/types';
@@ -6,26 +5,19 @@ import { cn } from '@/lib/utils';
 
 interface GameCardProps {
   game: Game;
-  imageUrl: string;
   onPlayClick: () => void;
   className?: string;
 }
 
-export function GameCard({ game, imageUrl, onPlayClick, className }: GameCardProps) {
+export function GameCard({ game, onPlayClick, className }: GameCardProps) {
   const Icon = game.icon;
 
   return (
     <Card className={cn("flex flex-col h-full bg-secondary border-primary/20 hover:border-primary/60 transition-all duration-300 group overflow-hidden", className)}>
       <CardHeader>
-        <div className="relative w-full h-40 rounded-lg overflow-hidden mb-4">
-          <Image
-            src={imageUrl}
-            alt={game.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            data-ai-hint="neon game"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-secondary to-transparent" />
+        <div className="relative w-full h-40 rounded-lg overflow-hidden mb-4 flex items-center justify-center bg-background/50">
+           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 to-transparent" />
+           <Icon className="w-20 h-20 text-primary drop-shadow-[0_0_10px_hsl(var(--primary))] group-hover:scale-110 transition-transform duration-300" />
         </div>
         <CardTitle className="flex items-center gap-2 font-headline">
           <Icon className="w-6 h-6 text-primary" />
