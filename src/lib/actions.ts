@@ -51,16 +51,15 @@ export async function getBetsForAdmin(): Promise<Bet[]> {
   return [...bets].sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export async function verifyAndConfirmBet(betId: string): Promise<{ success: boolean; message: string; newStatus?: BetStatus }> {
+export async function confirmBet(betId: string): Promise<{ success: boolean; message: string; newStatus?: BetStatus }> {
   const bet = bets.find((b) => b.id === betId);
   if (!bet) {
     return { success: false, message: 'Bet not found.' };
   }
 
-  // Manual confirmation
   bet.status = 'confirmed';
   revalidatePath('/admin');
-  revalidatePath(`/play/user/${bet.userId}`);
+  revalidatePath(`/play/user/${encodeURIComponent(bet.userId)}`);
   return { success: true, message: 'Bet confirmed!', newStatus: 'confirmed' };
 }
 
@@ -87,7 +86,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
         console.log(`[Discord Webhook] User ${bet.userId} won ${payout} on ${bet.gameName}!`);
     }
     
-    revalidatePath(`/play/user/${bet.userId}`);
+    revalidatePath(`/play/user/${encodeURIComponent(bet.userId)}`);
     revalidatePath(`/play/game/${betId}`);
 
     return { success: true, bet };

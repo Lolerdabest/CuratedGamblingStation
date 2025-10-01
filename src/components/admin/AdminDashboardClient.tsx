@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Bet, BetStatus } from '@/lib/types';
-import { verifyAndConfirmBet } from '@/lib/actions';
+import { confirmBet } from '@/lib/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
   const handleConfirm = async (betId: string) => {
     setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: true } : b)));
 
-    const result = await verifyAndConfirmBet(betId);
+    const result = await confirmBet(betId);
 
     if (result.success) {
       toast({
