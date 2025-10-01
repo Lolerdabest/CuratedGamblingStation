@@ -19,7 +19,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { placeBet } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Label } from '../ui/label';
+import { Slider } from '../ui/slider';
+import { games } from '@/lib/data';
 
 interface BetModalProps {
   game: Game;
@@ -30,7 +32,9 @@ interface BetModalProps {
 export function BetModal({ game, isOpen, onClose }: BetModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+
+  const [diceTarget, setDiceTarget] = React.useState(7);
+  const [numMines, setNumMines] = React.useState(5);
 
   const formSchema = z.object({
     minecraftUsername: z.string().min(3, {
@@ -61,21 +65,30 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    
+    let gameOptions: Record<string, any> | undefined;
+    if (game.id === 'dice') {
+        gameOptions = { target: diceTarget, condition: 'over' };
+    }
+    if (game.id === 'mines') {
+        gameOptions = { numMines: numMines };
+    }
+
     try {
       const result = await placeBet({
         userId: values.minecraftUsername,
         discordTag: values.discordTag,
         gameId: game.id,
         amount: values.amount,
+        gameOptions,
       });
 
       if (result.success && result.bet) {
         toast({
-            title: 'Bet Placed!',
-            description: 'Your game is ready. Good luck!',
+            title: 'Bet Placed Successfully!',
+            description: 'Your bet is now pending admin confirmation. Please contact an admin to get your game code.',
         });
         handleClose();
-        router.push(`/play/game/${result.bet.id}`);
       } else {
         toast({
           variant: 'destructive',
@@ -98,68 +111,100 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] bg-secondary border-primary/30">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <DialogHeader>
                 <DialogTitle className="font-headline text-2xl text-primary flex items-center gap-2">
                   <game.icon className="w-6 h-6" />
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details and bet amount. Your game will be available to play immediately.
+                  Enter your details, choose your options, and place your bet.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="minecraftUsername"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minecraft Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Notch" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="discordTag"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Discord Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="notch#0001" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bet Amount</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="1" min={game.minBet} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="minecraftUsername"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minecraft Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Notch" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="discordTag"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Discord Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="notch#0001" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {game.id === 'dice' && (
+                <div className="space-y-3">
+                    <Label>Roll Over Target (Win if roll &gt; {diceTarget})</Label>
+                    <div className="flex items-center gap-4">
+                        <Slider
+                            value={[diceTarget]}
+                            onValueChange={(value) => setDiceTarget(value[0])}
+                            min={2}
+                            max={11}
+                            step={1}
+                        />
+                        <span className="font-bold text-primary w-12 text-center text-lg">{diceTarget}</span>
+                    </div>
+                </div>
+              )}
+
+              {game.id === 'mines' && (
+                <div className="space-y-3">
+                    <Label>Number of Mines ({numMines})</Label>
+                     <div className="flex items-center gap-4">
+                        <Slider
+                            value={[numMines]}
+                            onValueChange={(value) => setNumMines(value[0])}
+                            min={1}
+                            max={24}
+                            step={1}
+                        />
+                        <span className="font-bold text-primary w-12 text-center text-lg">{numMines}</span>
+                    </div>
+                </div>
+              )}
+
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bet Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" min={game.minBet} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
 
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Please wait, redirecting...
+                      Placing Bet...
                     </>
                   ) : (
-                    'Place Bet & Play'
+                    'Place Bet'
                   )}
                 </Button>
               </DialogFooter>

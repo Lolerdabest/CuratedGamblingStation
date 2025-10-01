@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Gamepad2 } from 'lucide-react';
+import { Gamepad2, Shield } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -17,7 +17,7 @@ export default function Header() {
             <span className="font-bold font-headline text-lg">BlockChain</span>
           </Link>
         </div>
-        <nav className="flex items-center space-x-6 text-sm font-medium">
+        <nav className="flex flex-1 items-center space-x-6 text-sm font-medium">
            <Link
               href="/"
               className={cn(
@@ -28,6 +28,18 @@ export default function Header() {
               Home
             </Link>
         </nav>
+         <div className="flex items-center">
+            <Link
+                href="/admin"
+                className={cn(
+                    'transition-colors hover:text-primary flex items-center gap-2',
+                    pathname === "/admin" ? 'text-primary' : 'text-muted-foreground'
+                )}
+                >
+                <Shield />
+                Admin
+            </Link>
+        </div>
       </div>
     </header>
   );

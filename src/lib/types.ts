@@ -23,6 +23,8 @@ export interface Bet {
   gameName: string;
   amount: number;
   status: BetStatus;
+  accessCode?: string;
+  gameOptions?: Record<string, any>;
   outcome?: any;
   payout?: number;
   createdAt: number; // timestamp

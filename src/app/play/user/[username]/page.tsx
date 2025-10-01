@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle, Clock, Gamepad2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Gamepad2, ShieldCheck, Hourglass } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +18,14 @@ export default async function UserHistoryPage({ params }: { params: { username: 
       </h1>
       
       {bets.length === 0 ? (
-        <p className="text-center text-muted-foreground mt-12">No games found for this user.</p>
+        <Card className="mt-12 text-center py-12">
+            <CardContent>
+                <p className="text-muted-foreground">No games found for this user.</p>
+                <Button asChild className="mt-4">
+                    <Link href="/">Back to Home</Link>
+                </Button>
+            </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {bets.map(bet => (
@@ -29,6 +36,7 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                    <Badge
                       variant="outline"
                       className={cn('capitalize border-2', {
+                        'border-yellow-500 text-yellow-400': bet.status === 'pending',
                         'border-blue-500 text-blue-400': bet.status === 'confirmed',
                         'border-green-500 text-green-400': bet.status === 'won',
                         'border-red-500 text-red-400': bet.status === 'lost',
@@ -42,6 +50,12 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-4">
+                 {bet.status === 'pending' && (
+                    <div className="flex items-center gap-3 p-3 rounded-md bg-yellow-500/10 text-yellow-400">
+                        <Hourglass className="w-5 h-5 shrink-0"/>
+                        <p className="text-sm">Your bet is awaiting admin confirmation.</p>
+                    </div>
+                 )}
                  {bet.status === 'won' && (
                     <div className="flex items-center gap-3 p-3 rounded-md bg-green-500/10 text-green-400">
                         <CheckCircle className="w-5 h-5 shrink-0"/>
@@ -56,18 +70,27 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                  )}
                  {bet.status === 'confirmed' && (
                     <div className="flex items-center gap-3 p-3 rounded-md bg-blue-500/10 text-blue-400">
-                        <CheckCircle className="w-5 h-5 shrink-0"/>
-                        <p className="text-sm">Your game is ready to be played!</p>
+                        <ShieldCheck className="w-5 h-5 shrink-0"/>
+                        <p className="text-sm">Your game is confirmed and ready!</p>
                     </div>
                  )}
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full" disabled={bet.status !== 'confirmed'}>
-                  <Link href={`/play/game/${bet.id}`}>
-                    <Gamepad2 className="mr-2"/>
-                    {bet.status === 'confirmed' ? 'Play Now' : 'Not Ready'}
-                  </Link>
-                </Button>
+                 <div className="w-full">
+                    {bet.status === 'confirmed' ? (
+                       <Button asChild className="w-full">
+                        <Link href={`/play/game/${bet.id}`}>
+                            <Gamepad2 className="mr-2"/>
+                            Play Now
+                        </Link>
+                        </Button>
+                    ) : (
+                        <div className='text-center w-full'>
+                            <p className="text-xs text-muted-foreground">Your game code will be provided by an admin once your bet is confirmed.</p>
+                             {bet.accessCode && <p className='font-mono text-primary text-lg mt-2'>{bet.accessCode}</p>}
+                        </div>
+                    )}
+                 </div>
               </CardFooter>
             </Card>
           ))}

@@ -6,6 +6,8 @@ import { BetModal } from '@/components/auth/BetModal';
 import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
 import { Separator } from '@/components/ui/separator';
+import { GameCodeForm } from '@/components/play/GameCodeForm';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
@@ -22,7 +24,8 @@ export default function Home() {
           </p>
         </section>
 
-        <section>
+        <section className="mb-12 md:mb-20">
+          <h2 className="text-3xl font-headline font-bold text-center mb-8">Choose Your Game</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             {games.map((game, index) => (
               <div
@@ -38,6 +41,23 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <Separator className="my-12 md:my-20" />
+
+        <section>
+          <Card className="max-w-xl mx-auto bg-secondary border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-center font-headline text-2xl">Have a Game Code?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground mb-4">
+                Enter the code provided by an admin to access your game.
+              </p>
+              <GameCodeForm />
+            </CardContent>
+          </Card>
+        </section>
+
       </div>
       {selectedGame && (
         <BetModal

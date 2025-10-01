@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { Bet } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +13,6 @@ interface DiceGameProps {
 }
 
 const Dice = ({ value }: { value: number }) => {
-    const dots = Array.from({ length: value }, (_, i) => i);
     return (
       <div className="w-24 h-24 bg-secondary rounded-lg flex items-center justify-center shadow-lg border border-primary/20"
            style={{ transformStyle: 'preserve-3d', transform: 'rotateX(-20deg) rotateY(-30deg)' }}>
@@ -46,21 +45,44 @@ export default function DiceGame({ bet }: DiceGameProps) {
   const [isRolling, setIsRolling] = useState(false);
   const { toast } = useToast();
 
+  const { target, condition } = useMemo(() => ({
+      target: bet.gameOptions?.target ?? 7,
+      condition: bet.gameOptions?.condition ?? 'over'
+  }), [bet.gameOptions]);
+
   const handleRoll = () => {
     setIsRolling(true);
-    const die1 = Math.floor(Math.random() * 6) + 1;
-    const die2 = Math.floor(Math.random() * 6) + 1;
+    
+    // Animate rolling
+    const interval = setInterval(() => {
+        setResult({
+            die1: Math.floor(Math.random() * 6) + 1,
+            die2: Math.floor(Math.random() * 6) + 1,
+            total: 0
+        });
+    }, 100);
 
+    // Settle on final result
     setTimeout(() => {
-      setResult({ die1, die2, total: die1 + die2 });
+      clearInterval(interval);
+      const die1 = Math.floor(Math.random() * 6) + 1;
+      const die2 = Math.floor(Math.random() * 6) + 1;
+      const total = die1 + die2;
+      setResult({ die1, die2, total });
       setIsRolling(false);
       
       startTransition(async () => {
-        const didWin = (die1 + die2) > 7;
+        let didWin = false;
+        if (condition === 'over') {
+            didWin = total > target;
+        } else { // under
+            didWin = total < target;
+        }
+
         const payout = didWin ? bet.amount * 2 : 0;
         const gameResult = await resolveGame(bet.id, didWin ? 'win' : 'loss', payout);
         if (gameResult.success) {
-            toast({ title: didWin ? "You won!" : "You lost.", description: `The total was ${die1 + die2}.`});
+            toast({ title: didWin ? "You won!" : "You lost.", description: `The total was ${total}.`});
         } else {
             toast({ variant: 'destructive', title: 'Error', description: 'Could not save game result.'});
         }
@@ -71,24 +93,24 @@ export default function DiceGame({ bet }: DiceGameProps) {
   return (
     <Card className="max-w-md mx-auto bg-secondary border-primary/20 text-center">
       <CardContent className="p-6">
-        <p className="text-muted-foreground mb-6">Roll over 7 to double your bet!</p>
+        <p className="text-muted-foreground mb-6">Roll {condition} <span className="text-primary font-bold">{target}</span> to double your bet!</p>
         <div className="flex justify-center items-center gap-6 mb-8 h-24">
-            <Dice value={isRolling ? Math.floor(Math.random() * 6) + 1 : result?.die1 ?? 1} />
-            <Dice value={isRolling ? Math.floor(Math.random() * 6) + 1 : result?.die2 ?? 1} />
+            <Dice value={result?.die1 ?? 1} />
+            <Dice value={result?.die2 ?? 1} />
         </div>
         
         {result && !isRolling && (
           <div className="mb-6 animate-fade-in-up">
             <h2 className="text-4xl font-bold">{result.total}</h2>
             <p className="text-lg font-semibold text-primary">
-              {result.total > 7 ? 'Winner!' : 'Better luck next time!'}
+              {result.total > target ? 'Winner!' : 'Better luck next time!'}
             </p>
           </div>
         )}
 
-        <Button onClick={handleRoll} disabled={isRolling || isPending || !!result} className="w-full">
+        <Button onClick={handleRoll} disabled={isRolling || isPending || (!!result && result.total > 0)} className="w-full">
           {(isRolling || isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isRolling ? 'Rolling...' : result ? 'Game Over' : 'Roll Dice'}
+          {isRolling ? 'Rolling...' : (!!result && result.total > 0) ? 'Game Over' : 'Roll Dice'}
         </Button>
       </CardContent>
     </Card>
