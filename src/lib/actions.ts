@@ -124,14 +124,14 @@ export async function getAllBets(): Promise<Bet[]> {
 
 export async function findGameByCode(code: string) {
   const allBets = await getBets();
-  const bet = allBets.find(b => b.accessCode === code);
+  const bet = allBets.find(b => b.accessCode === code.trim());
 
   if (bet) {
      if (bet.status === 'won' || bet.status === 'lost') {
        return { success: false, error: 'This game code has already been used.' };
     }
-    // Redirect to the user's game list page
-    return { success: true, url: `/play/user/${bet.userId}` };
+    // Redirect directly to the game page.
+    return { success: true, url: `/play/game/${bet.id}` };
   } else {
     return { success: false, error: 'Invalid game code.' };
   }
