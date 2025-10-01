@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useFormState } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { findGameByCode } from '@/lib/actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,9 +13,18 @@ const initialState = {
   error: '',
 };
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" size="icon" aria-label="Search" disabled={pending}>
+      {pending ? <Loader2 className="animate-spin" /> : <Search className="h-4 w-4" />}
+    </Button>
+  );
+}
+
 export function GameCodeForm() {
   const [state, formAction] = useFormState(findGameByCode, initialState);
-  const [isPending, setIsPending] = React.useState(false);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -26,20 +35,11 @@ export function GameCodeForm() {
         title: 'Error',
         description: state.error,
       });
-      setIsPending(false);
     }
   }, [state, toast]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsPending(true);
-    const formData = new FormData(event.currentTarget);
-    // @ts-ignore
-    formAction(formData.get('code') as string);
-  };
-
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
+    <form ref={formRef} action={formAction} className="flex w-full items-center space-x-2">
       <Input
         type="text"
         name="code"
@@ -47,9 +47,7 @@ export function GameCodeForm() {
         className="flex-grow"
         required
       />
-      <Button type="submit" size="icon" aria-label="Search" disabled={isPending}>
-        {isPending ? <Loader2 className="animate-spin" /> : <Search className="h-4 w-4" />}
-      </Button>
+      <SubmitButton />
     </form>
   );
 }
