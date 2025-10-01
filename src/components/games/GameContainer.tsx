@@ -6,7 +6,8 @@ import RouletteGame from "./RouletteGame";
 import DragonTowerGame from "./DragonTowerGame";
 import { games } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface GameContainerProps {
     bet: Bet;
@@ -24,29 +25,51 @@ export default function GameContainer({ bet }: GameContainerProps) {
     const GameIcon = gameInfo?.icon;
 
     if (bet.status === 'won' || bet.status === 'lost') {
+        const won = bet.status === 'won';
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <Card className="max-w-md text-center bg-secondary border-primary/20 animate-fade-in-up">
-                    <CardHeader>
-                        <CardTitle className="font-headline text-3xl">
-                           {bet.status === 'won' ? <span className="text-green-400">You Won!</span> : <span className="text-red-500">You Lost</span>}
-                        </CardTitle>
-                        <CardDescription>Result of your {bet.gameName} game.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {bet.status === 'won' ? (
-                            <ThumbsUp className="mx-auto h-16 w-16 text-green-400" />
+                <Card className={cn(
+                    "max-w-md w-full text-center bg-secondary/80 backdrop-blur-sm border-2 animate-scale-in",
+                    won ? "border-green-500/50" : "border-red-500/50"
+                )} style={{ animation: 'scale-in 0.3s ease-out forwards' }}>
+                    <CardHeader className="pb-2">
+                         {won ? (
+                            <div className="mx-auto h-20 w-20 rounded-full flex items-center justify-center bg-green-500/10 shadow-[0_0_20px_theme(colors.green.500/0.4)]">
+                                <CheckCircle className="h-12 w-12 text-green-400" />
+                            </div>
                         ) : (
-                            <ThumbsDown className="mx-auto h-16 w-16 text-red-500" />
+                             <div className="mx-auto h-20 w-20 rounded-full flex items-center justify-center bg-red-500/10 shadow-[0_0_20px_theme(colors.red.500/0.4)]">
+                                <XCircle className="h-12 w-12 text-red-500" />
+                            </div>
                         )}
-                        <p className="text-lg">
-                            You bet <span className="font-mono text-primary">{bet.amount}</span> and {bet.status === 'won' ? `won` : `lost`}.
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <h2 className={cn(
+                            "text-3xl font-headline font-bold",
+                             won ? "text-green-400" : "text-red-500"
+                        )}>
+                            {won ? "You Won!" : "You Lost"}
+                        </h2>
+                        
+                        <p className="text-muted-foreground">
+                            You bet <span className="font-mono text-primary">{bet.amount.toLocaleString()}</span> on {bet.gameName}.
                         </p>
-                        {bet.status === 'won' && bet.payout && (
-                             <p className="text-2xl font-bold">
-                                Payout: <span className="font-mono text-green-400">{bet.payout.toLocaleString()}</span>
-                            </p>
+
+                        {won && bet.payout && (
+                             <div className="py-4">
+                                <p className="text-sm text-muted-foreground">Payout</p>
+                                <p className="text-4xl font-bold font-mono text-green-400">
+                                    {bet.payout.toLocaleString()}
+                                </p>
+                             </div>
                         )}
+
+                        <p className="text-sm text-center pt-2">
+                             {won
+                                ? "Your payout will be processed shortly!"
+                                : "Better luck next time!"
+                            }
+                        </p>
                     </CardContent>
                 </Card>
             </div>
