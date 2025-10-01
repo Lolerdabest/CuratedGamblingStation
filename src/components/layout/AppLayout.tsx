@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Gamepad2, Shield } from 'lucide-react';
+import { Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 
 import {
@@ -56,15 +56,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
           <SidebarTrigger className="shrink-0" />
           <div className="flex items-center gap-2">
-             <Button asChild variant="ghost">
-                <Link href="/admin">
-                    <Shield className='mr-2'/>
-                    Admin
-                </Link>
-             </Button>
+             {/* Admin button removed */}
           </div>
         </header>
         <main>{children}</main>
