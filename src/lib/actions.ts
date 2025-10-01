@@ -50,7 +50,7 @@ async function sendDiscordWebhook(embed: any) {
 const placeBetSchema = z.object({
   userId: z.string().min(3, 'Username must be at least 3 characters.'),
   discordTag: z.string().min(2, 'Discord tag is required.'),
-  gameId: z.enum(['dragon-tower', 'roulette', 'mines']),
+  gameId: z.enum(['dragon-tower', 'roulette', 'mines', 'chicken-cross']),
   amount: z.number(),
   gameOptions: z.record(z.any()).optional(),
 });

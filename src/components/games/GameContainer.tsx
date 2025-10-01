@@ -4,6 +4,7 @@ import { Bet } from "@/lib/types";
 import MinesGame from "./MinesGame";
 import RouletteGame from "./RouletteGame";
 import DragonTowerGame from "./DragonTowerGame";
+import ChickenCrossGame from "./ChickenCrossGame";
 import { games } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -17,6 +18,7 @@ const gameComponents = {
     'mines': MinesGame,
     'roulette': RouletteGame,
     'dragon-tower': DragonTowerGame,
+    'chicken-cross': ChickenCrossGame,
 };
 
 export default function GameContainer({ bet }: GameContainerProps) {
