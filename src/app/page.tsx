@@ -1,6 +1,4 @@
 
-'use client';
-
 import * as React from 'react';
 import { GameCard } from '@/components/shared/GameCard';
 import { BetModal } from '@/components/auth/BetModal';
@@ -8,22 +6,15 @@ import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
 import { GameCodeForm } from '@/components/play/GameCodeForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import Link from 'next/link';
 
-function HomePageContent() {
-  const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
-  const searchParams = useSearchParams();
-
-  React.useEffect(() => {
-    const gameId = searchParams.get('game');
-    if (gameId) {
-      const game = games.find((g) => g.id === gameId);
-      if (game) {
-        setSelectedGame(game);
-      }
-    }
-  }, [searchParams]);
+export default function Home({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const gameId = searchParams.game as string | undefined;
+  const selectedGame = games.find((g) => g.id === gameId);
 
   return (
     <>
@@ -40,10 +31,11 @@ function HomePageContent() {
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <GameCard
-                  game={game}
-                  onPlayClick={() => setSelectedGame(game)}
-                />
+                <Link href={`/?game=${game.id}`} scroll={false}>
+                    <GameCard
+                        game={game}
+                    />
+                </Link>
               </div>
             ))}
           </div>
@@ -67,19 +59,8 @@ function HomePageContent() {
       {selectedGame && (
         <BetModal
           game={selectedGame}
-          isOpen={!!selectedGame}
-          onClose={() => setSelectedGame(null)}
         />
       )}
     </>
-  );
-}
-
-
-export default function Home() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <HomePageContent />
-    </Suspense>
   );
 }

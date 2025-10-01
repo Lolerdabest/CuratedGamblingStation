@@ -5,11 +5,10 @@ import { cn } from '@/lib/utils';
 
 interface GameCardProps {
   game: Game;
-  onPlayClick: () => void;
   className?: string;
 }
 
-export function GameCard({ game, onPlayClick, className }: GameCardProps) {
+export function GameCard({ game, className }: GameCardProps) {
   const Icon = game.icon;
 
   return (
@@ -27,7 +26,7 @@ export function GameCard({ game, onPlayClick, className }: GameCardProps) {
          <p className="text-sm text-muted-foreground">{game.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button onClick={onPlayClick} className="w-full font-bold">
+        <Button className="w-full font-bold">
           Play Now
         </Button>
       </CardFooter>

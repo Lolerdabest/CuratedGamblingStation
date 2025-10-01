@@ -21,16 +21,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
 import { Slider } from '../ui/slider';
+import { useRouter } from 'next/navigation';
 
 interface BetModalProps {
   game: Game;
-  isOpen: boolean;
-  onClose: () => void;
 }
 
-export function BetModal({ game, isOpen, onClose }: BetModalProps) {
+export function BetModal({ game }: BetModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const [numMines, setNumMines] = React.useState(5);
 
@@ -55,7 +55,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
   const handleClose = () => {
     if (isSubmitting) return;
-    onClose();
+    router.push('/', { scroll: false });
     setTimeout(() => {
       form.reset();
     }, 300);
@@ -103,7 +103,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] bg-card border-border">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
