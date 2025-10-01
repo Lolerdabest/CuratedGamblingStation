@@ -1,5 +1,5 @@
 import { Game, Bet } from '@/lib/types';
-import { TowerControl, Dice5, Bomb } from 'lucide-react';
+import { TowerControl, Bomb } from 'lucide-react';
 import { Icons } from '@/components/icons';
 
 export const games: Game[] = [
@@ -9,13 +9,6 @@ export const games: Game[] = [
     description: 'Climb the tower, avoiding skulls to increase your multiplier.',
     minBet: 250,
     icon: TowerControl,
-  },
-  {
-    id: 'dice',
-    name: 'Dice',
-    description: 'Predict the outcome of a roll of two dice. Simple and fast.',
-    minBet: 250,
-    icon: Dice5,
   },
   {
     id: 'roulette',

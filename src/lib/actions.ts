@@ -6,6 +6,9 @@ import { games } from './data';
 import type { Bet, BetStatus } from './types';
 import { db } from './db';
 import { redirect } from 'next/navigation';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const generateAccessCode = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -36,7 +39,7 @@ async function sendDiscordWebhook(embed: any) {
     });
 
     if (!response.ok) {
-      console.error(`Discord webhook failed with status ${response.status}:`, await response.json());
+      console.error(`Discord webhook failed with status ${response.status}:`, await response.text());
     }
   } catch (error) {
     console.error('Error sending Discord webhook:', error);
@@ -47,7 +50,7 @@ async function sendDiscordWebhook(embed: any) {
 const placeBetSchema = z.object({
   userId: z.string().min(3, 'Username must be at least 3 characters.'),
   discordTag: z.string().min(2, 'Discord tag is required.'),
-  gameId: z.enum(['dragon-tower', 'dice', 'roulette', 'mines']),
+  gameId: z.enum(['dragon-tower', 'roulette', 'mines']),
   amount: z.number(),
   gameOptions: z.record(z.any()).optional(),
 });

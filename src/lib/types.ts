@@ -1,4 +1,4 @@
-export type GameId = 'dragon-tower' | 'dice' | 'roulette' | 'mines';
+export type GameId = 'dragon-tower' | 'roulette' | 'mines';
 
 export interface Game {
   id: GameId;

@@ -32,7 +32,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const { toast } = useToast();
 
-  const [diceTarget, setDiceTarget] = React.useState(7);
   const [numMines, setNumMines] = React.useState(5);
 
   const formSchema = z.object({
@@ -66,9 +65,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     setIsSubmitting(true);
     
     let gameOptions: Record<string, any> | undefined;
-    if (game.id === 'dice') {
-        gameOptions = { target: diceTarget, condition: 'over' };
-    }
     if (game.id === 'mines') {
         gameOptions = { numMines: numMines };
     }
@@ -151,22 +147,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   </FormItem>
                 )}
               />
-              
-              {game.id === 'dice' && (
-                <div className="space-y-3">
-                    <Label>Roll Over Target (Win if roll &gt; {diceTarget})</Label>
-                    <div className="flex items-center gap-4">
-                        <Slider
-                            value={[diceTarget]}
-                            onValueChange={(value) => setDiceTarget(value[0])}
-                            min={2}
-                            max={11}
-                            step={1}
-                        />
-                        <span className="font-bold text-primary w-12 text-center text-lg">{diceTarget}</span>
-                    </div>
-                </div>
-              )}
 
               {game.id === 'mines' && (
                 <div className="space-y-3">

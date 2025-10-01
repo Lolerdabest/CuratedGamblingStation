@@ -1,7 +1,6 @@
 'use client';
 
 import { Bet } from "@/lib/types";
-import DiceGame from "./DiceGame";
 import MinesGame from "./MinesGame";
 import RouletteGame from "./RouletteGame";
 import DragonTowerGame from "./DragonTowerGame";
@@ -14,7 +13,6 @@ interface GameContainerProps {
 }
 
 const gameComponents = {
-    'dice': DiceGame,
     'mines': MinesGame,
     'roulette': RouletteGame,
     'dragon-tower': DragonTowerGame,
