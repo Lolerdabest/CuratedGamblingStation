@@ -1,53 +1,65 @@
 'use client';
 
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
 import { findGameByCode } from '@/lib/actions';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const initialState = {
-  success: true,
-  error: '',
-};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button type="submit" size="icon" aria-label="Search" disabled={pending}>
-      {pending ? <Loader2 className="animate-spin" /> : <Search className="h-4 w-4" />}
-    </Button>
-  );
-}
-
 export function GameCodeForm() {
-  const [state, formAction] = useFormState(findGameByCode, initialState);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [code, setCode] = React.useState('');
   const { toast } = useToast();
-  const formRef = React.useRef<HTMLFormElement>(null);
 
-  React.useEffect(() => {
-    if (!state.success && state.error) {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!code.trim()) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: state.error,
+        description: 'Please enter a game code.',
       });
+      return;
     }
-  }, [state, toast]);
+    setIsLoading(true);
+
+    try {
+      const result = await findGameByCode(code);
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: result.error,
+        });
+      }
+      // On success, the action redirects, so we don't need to handle it here.
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'An unexpected error occurred.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <form ref={formRef} action={formAction} className="flex w-full items-center space-x-2">
+    <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
       <Input
         type="text"
         name="code"
         placeholder="Enter your game code..."
         className="flex-grow"
+        value={code}
+        onChange={(e) => setCode(e.target.value)}
         required
+        disabled={isLoading}
       />
-      <SubmitButton />
+      <Button type="submit" size="icon" aria-label="Search" disabled={isLoading}>
+        {isLoading ? <Loader2 className="animate-spin" /> : <Search className="h-4 w-4" />}
+      </Button>
     </form>
   );
 }

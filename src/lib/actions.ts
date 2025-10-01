@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games, mockBets } from './data';
-import type { Bet, BetStatus, GameId } from './types';
+import type { Bet } from './types';
 import { redirect } from 'next/navigation';
 
 // In a real app, this would be a database (e.g., Firestore)
@@ -38,7 +38,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
                     color: 0xFFA500, // Orange
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
-                        { name: 'Discord', value: bet.discordTag, inline: true },
+                        { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
                         { name: 'Game', value: bet.gameName, inline: true },
                         { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
                         { name: 'Confirmation Code', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
@@ -90,7 +90,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   return { success: true, bet: newBet };
 }
 
-export async function findGameByCode(code: string) {
+export async function findGameByCode(code: string): Promise<{ success: boolean; error?: string }> {
     const bet = bets.find(b => b.id === code);
     if (bet) {
       redirect(`/play/game/${bet.id}`);
