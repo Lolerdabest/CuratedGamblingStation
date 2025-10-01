@@ -18,7 +18,7 @@ export default function UserSearch() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4 sm:flex-row items-center space-x-2">
       <Input
         type="text"
         placeholder="Enter your Minecraft username..."
@@ -26,8 +26,9 @@ export default function UserSearch() {
         onChange={(e) => setUsername(e.target.value)}
         className="flex-grow"
       />
-      <Button type="submit" size="icon" aria-label="Search">
-        <Search className="h-4 w-4" />
+      <Button type="submit" className="w-full sm:w-auto">
+        <Search className="mr-2" />
+        View Games
       </Button>
     </form>
   );
