@@ -37,7 +37,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     minecraftUsername: z.string().min(3, {
       message: 'Minecraft username must be at least 3 characters.',
     }),
-    discordTag: z.string(),
+    discordTag: z.string().min(1, { message: 'Discord username is required.' }),
     amount: z
       .number({ coerce: true })
       .min(game.minBet, { message: `Minimum bet is ${game.minBet}.` }),
@@ -130,9 +130,9 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   name="discordTag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discord Username (Optional)</FormLabel>
+                      <FormLabel>Discord Username</FormLabel>
                       <FormControl>
-                        <Input placeholder="notch" {...field} />
+                        <Input placeholder="notch#0001" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -101,26 +101,6 @@ export async function findGameByCode(code: string): Promise<{ success: boolean; 
     }
 }
 
-export async function confirmBetWithCode(betId: string, code: string): Promise<{ success: boolean; error?: string }> {
-    const bet = bets.find((b) => b.id === betId);
-
-    if (!bet) {
-        return { success: false, error: 'Bet not found.' };
-    }
-    if (bet.status !== 'pending') {
-        return { success: true }; // Already confirmed
-    }
-    if (bet.confirmationCode !== code) {
-        return { success: false, error: 'Invalid confirmation code.' };
-    }
-
-    bet.status = 'confirmed';
-
-    revalidatePath(`/play/game/${betId}`);
-
-    return { success: true };
-}
-
 export async function getBet(betId: string): Promise<Bet | undefined> {
     return bets.find((b) => b.id === betId);
 }
