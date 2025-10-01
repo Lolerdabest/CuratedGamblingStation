@@ -5,11 +5,6 @@ import { Gamepad2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/admin', label: 'Admin' },
-];
-
 export default function Header() {
   const pathname = usePathname();
 
@@ -23,18 +18,15 @@ export default function Header() {
           </Link>
         </div>
         <nav className="flex items-center space-x-6 text-sm font-medium">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
+           <Link
+              href="/"
               className={cn(
                 'transition-colors hover:text-primary',
-                pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                pathname === "/" ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              {link.label}
+              Home
             </Link>
-          ))}
         </nav>
       </div>
     </header>

@@ -2,15 +2,23 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { games, mockBets } from './data';
+import { games } from './data';
 import type { Bet } from './types';
-import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
 // In a real app, this would be a database (e.g., Firestore)
 // By putting it in a separate object, we can better simulate a persistent store in dev.
 const db = {
-  bets: [...mockBets] as Bet[]
+  bets: [] as Bet[] // Removed mock bets
 };
+
+// --- Helper to get base URL ---
+function getBaseUrl() {
+  const heads = headers();
+  const protocol = heads.get('x-forwarded-proto') || 'http';
+  const host = heads.get('host');
+  return `${protocol}://${host}`;
+}
 
 
 // --- Schemas ---
@@ -27,6 +35,9 @@ async function sendBetPlacementWebhook(bet: Bet) {
         console.warn('DISCORD_WEBHOOK_URL not set. Skipping webhook notification.');
         return;
     }
+    
+    const baseUrl = getBaseUrl();
+    const confirmationUrl = `${baseUrl}/api/confirm?betId=${bet.id}`;
 
     try {
         await fetch(process.env.DISCORD_WEBHOOK_URL, {
@@ -36,7 +47,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
                 embeds: [{
                     title: '⏳ New Bet Awaiting Confirmation',
                     color: 0xFFA500, // Orange
-                    description: `Go to the admin panel to confirm this payment. The Game ID is \`${bet.id}\`.`,
+                    description: `Click the link below to confirm you have received the payment.`,
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
                         { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
@@ -45,7 +56,20 @@ async function sendBetPlacementWebhook(bet: Bet) {
                     ],
                     footer: { text: `Bet ID: ${bet.id}` },
                     timestamp: new Date().toISOString()
-                }]
+                }],
+                components: [
+                    {
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                label: "Confirm Payment",
+                                style: 5,
+                                url: confirmationUrl
+                            }
+                        ]
+                    }
+                ]
             })
         });
     } catch (error) {
@@ -83,7 +107,6 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   
   await sendBetPlacementWebhook(newBet);
 
-  revalidatePath('/admin');
   return { success: true, bet: newBet };
 }
 
@@ -92,14 +115,14 @@ export async function getBet(betId: string): Promise<Bet | undefined> {
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {
-  return db.bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase());
+  return db.bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function getAllBets(): Promise<Bet[]> {
     return db.bets.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export async function confirmBet(betId: string): Promise<{ success: boolean, error?: string }> {
+export async function confirmBet(betId: string): Promise<{ success: boolean, error?: string, bet?: Bet }> {
     const betIndex = db.bets.findIndex(b => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: "Bet not found." };
@@ -113,6 +136,7 @@ export async function confirmBet(betId: string): Promise<{ success: boolean, err
 
     // Update the bet status
     db.bets[betIndex] = { ...bet, status: 'confirmed' };
+    const confirmedBet = db.bets[betIndex];
     
     // Optional: Send a confirmation webhook to Discord
     if (process.env.DISCORD_WEBHOOK_URL) {
@@ -124,9 +148,8 @@ export async function confirmBet(betId: string): Promise<{ success: boolean, err
                     embeds: [{
                         title: '✅ Bet Confirmed',
                         color: 0x00FF00, // Green
-                        description: `${bet.userId} is now able to play their game.`,
+                        description: `**${bet.userId}** is now able to play their game.`,
                         fields: [
-                            { name: 'Player', value: bet.userId, inline: true },
                             { name: 'Game', value: bet.gameName, inline: true },
                             { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
                         ],
@@ -139,11 +162,9 @@ export async function confirmBet(betId: string): Promise<{ success: boolean, err
         }
     }
 
-
-    revalidatePath('/admin');
     revalidatePath(`/play/user/${bet.userId}`);
 
-    return { success: true };
+    return { success: true, bet: confirmedBet };
 }
 
 
@@ -181,7 +202,6 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     }
     
     revalidatePath(`/play/game/${betId}`);
-    revalidatePath('/admin');
     revalidatePath(`/play/user/${bet.userId}`);
 
     return { success: true, bet: db.bets[betIndex] };

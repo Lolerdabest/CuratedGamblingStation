@@ -33,49 +33,5 @@ export const games: Game[] = [
   },
 ];
 
-export const mockBets: Bet[] = [
-    {
-        id: 'bet_1',
-        userId: 'Notch',
-        discordTag: 'notch#0001',
-        gameId: 'dice',
-        gameName: 'Dice',
-        amount: 500,
-        status: 'pending',
-        createdAt: Date.now() - 1000 * 60 * 5,
-    },
-    {
-        id: 'bet_2',
-        userId: 'Jeb_',
-        discordTag: 'jeb#0002',
-        gameId: 'roulette',
-        gameName: 'Roulette',
-        amount: 1000,
-        status: 'confirmed',
-        createdAt: Date.now() - 1000 * 60 * 15,
-    },
-    {
-        id: 'bet_3',
-        userId: 'Herobrine',
-        discordTag: 'herobrine#6666',
-        gameId: 'mines',
-        gameName: 'Mines',
-        amount: 250,
-        status: 'won',
-        payout: 500,
-        outcome: { result: 'won' },
-        createdAt: Date.now() - 1000 * 60 * 60 * 2,
-    },
-    {
-        id: 'bet_4',
-        userId: 'Steve',
-        discordTag: 'steve#1234',
-        gameId: 'dragon-tower',
-        gameName: 'Dragon Tower',
-        amount: 750,
-        status: 'lost',
-        payout: 0,
-        outcome: { result: 'lost' },
-        createdAt: Date.now() - 1000 * 60 * 60 * 24,
-    },
-];
+// NOTE: Mock bets have been removed. All bets will now be created through the UI.
+export const mockBets: Bet[] = [];
