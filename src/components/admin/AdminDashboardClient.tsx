@@ -26,18 +26,14 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
         title: 'Success',
         description: result.message,
       });
+       setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: result.newStatus! } : b)));
     } else {
       toast({
         variant: 'destructive',
         title: 'Confirmation Failed',
         description: result.message,
       });
-    }
-    
-    if (result.newStatus) {
-        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: result.newStatus! } : b)));
-    } else {
-        setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: 'pending' } : b)));
+      setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false } : b)));
     }
   };
 
