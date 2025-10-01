@@ -37,9 +37,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     minecraftUsername: z.string().min(3, {
       message: 'Minecraft username must be at least 3 characters.',
     }),
-    discordTag: z.string().min(2, {
-        message: 'Please enter your Discord username.',
-    }),
+    discordTag: z.string(),
     amount: z
       .number({ coerce: true })
       .min(game.minBet, { message: `Minimum bet is ${game.minBet}.` }),
@@ -76,10 +74,10 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
       if (result.success && result.bet) {
         toast({
             title: 'Bet Placed!',
-            description: 'Your game is awaiting confirmation. Check with an admin.',
+            description: 'Ask an admin for your game code to start playing.',
         });
         handleClose();
-        router.push(`/play/game/${result.bet.id}`);
+        router.push(`/play`);
       } else {
         toast({
           variant: 'destructive',
@@ -109,7 +107,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details and bet amount. Minimum bet is {game.minBet}. An admin will provide you a code to play.
+                  Enter your details and bet amount. The admin will give you a game code to play.
                 </DialogDescription>
               </DialogHeader>
 
@@ -132,7 +130,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   name="discordTag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discord Username</FormLabel>
+                      <FormLabel>Discord Username (Optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="notch" {...field} />
                       </FormControl>

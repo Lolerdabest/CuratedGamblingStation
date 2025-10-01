@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games, mockBets } from './data';
 import type { Bet, BetStatus, GameId } from './types';
+import { redirect } from 'next/navigation';
 
 // In a real app, this would be a database (e.g., Firestore)
 let bets: Bet[] = [...mockBets];
@@ -41,6 +42,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
                         { name: 'Game', value: bet.gameName, inline: true },
                         { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
                         { name: 'Confirmation Code', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
+                        { name: 'Game ID (for user)', value: `\`\`\`${bet.id}\`\`\`` },
                     ],
                     footer: { text: `Bet ID: ${bet.id}` },
                     timestamp: new Date().toISOString()
@@ -84,8 +86,17 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   // Send webhook notification
   await sendBetPlacementWebhook(newBet);
 
-  revalidatePath(`/play/user/${encodeURIComponent(userId)}`);
+  revalidatePath(`/play/game/${newBet.id}`);
   return { success: true, bet: newBet };
+}
+
+export async function findGameByCode(code: string) {
+    const bet = bets.find(b => b.id === code);
+    if (bet) {
+      redirect(`/play/game/${bet.id}`);
+    } else {
+      return { success: false, error: 'No game found with that code.' };
+    }
 }
 
 export async function confirmBetWithCode(betId: string, code: string): Promise<{ success: boolean; error?: string }> {
@@ -104,14 +115,8 @@ export async function confirmBetWithCode(betId: string, code: string): Promise<{
     bet.status = 'confirmed';
 
     revalidatePath(`/play/game/${betId}`);
-    revalidatePath(`/play/user/${encodeURIComponent(bet.userId)}`);
 
     return { success: true };
-}
-
-export async function getUserBets(username: string): Promise<Bet[]> {
-  return bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase())
-    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
@@ -151,7 +156,6 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
         }
     }
     
-    revalidatePath(`/play/user/${encodeURIComponent(bet.userId)}`);
     revalidatePath(`/play/game/${betId}`);
 
     return { success: true, bet };
