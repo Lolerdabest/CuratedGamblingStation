@@ -83,7 +83,7 @@ export function BetModal({ gameId }: BetModalProps) {
       if (result.success && result.bet) {
         toast({
             title: 'Bet Placed Successfully!',
-            description: 'Your bet is now pending admin confirmation. Please contact an admin to get your game code.',
+            description: 'Please contact an admin on Discord with proof of payment to get your game code.',
         });
         handleClose();
       } else {
@@ -125,7 +125,7 @@ export function BetModal({ gameId }: BetModalProps) {
                   <code className="bg-background font-bold p-1 rounded-md text-sm block my-2 text-center">
                     /pay Lolerdabest69 {'<amount>'}
                   </code>
-                   Once paid, an admin will confirm your bet.
+                   Once paid, contact an admin on Discord to receive your game code.
                 </DialogDescription>
               </DialogHeader>
 

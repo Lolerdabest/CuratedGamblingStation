@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games } from './data';
-import type { Bet, BetStatus } from './types';
+import type { Bet } from './types';
 import { getBets, setBets } from './db';
 import dotenv from 'dotenv';
 
@@ -69,7 +69,8 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     return { success: false, error: 'Game not found.' };
   }
 
-  const allBets = await getBets();
+  const allBets = getBets();
+  const accessCode = generateAccessCode();
 
   const newBet: Bet = {
     id: `bet_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -79,98 +80,81 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameName: game.name,
     amount,
     gameOptions,
-    status: 'pending',
+    status: 'confirmed', // Auto-confirm
+    accessCode,
     createdAt: Date.now(),
   };
 
   allBets.unshift(newBet);
-  await setBets(allBets);
+  setBets(allBets);
   
   await sendDiscordWebhook({
-    title: 'New Bet Placed',
+    title: 'New Bet Placed - Ready for Confirmation',
     color: 0xf1c40f, // Yellow
+    description: `A new bet has been placed. Please verify the player has paid **\`${newBet.amount.toLocaleString()}\`** in-game before sending them the access code.`,
     fields: [
         { name: 'Player', value: newBet.userId, inline: true },
         { name: 'Discord', value: newBet.discordTag, inline: true },
         { name: 'Game', value: newBet.gameName, inline: true },
-        { name: 'Amount', value: newBet.amount.toLocaleString(), inline: true },
-        { name: 'Game Options', value: '`' + JSON.stringify(newBet.gameOptions) + '`' }
+        { name: 'Access Code', value: `**\`${newBet.accessCode}\`**`, inline: false },
+        { name: 'Game Options', value: '`' + JSON.stringify(newBet.gameOptions ?? {}) + '`' }
     ],
     timestamp: new Date().toISOString(),
   });
 
-  revalidatePath('/admin');
   revalidatePath(`/play/user/${userId}`);
 
   return { success: true, bet: newBet };
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
-    const allBets = await getBets();
+    const allBets = getBets();
     return allBets.find((b) => b.id === betId);
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {
-  const allBets = await getBets();
+  const allBets = getBets();
   return allBets.filter((b) => b.userId.toLowerCase() === username.toLowerCase()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function getAllBets(): Promise<Bet[]> {
-    const allBets = await getBets();
+    const allBets = getBets();
     return allBets.sort((a, b) => b.createdAt - a.createdAt);
 }
 
-export async function confirmBet(betId: string) {
-    const allBets = await getBets();
-    const betIndex = allBets.findIndex((b) => b.id === betId);
-    if (betIndex === -1) {
-        return { success: false, error: 'Bet not found.' };
-    }
-    
-    const accessCode = generateAccessCode();
-    allBets[betIndex].status = 'confirmed';
-    allBets[betIndex].accessCode = accessCode;
-    const bet = allBets[betIndex];
-
-    await setBets(allBets);
-
-    await sendDiscordWebhook({
-        title: 'Bet Confirmed!',
-        color: 0x3498db, // Blue
-        fields: [
-            { name: 'Player', value: bet.userId, inline: true },
-            { name: 'Game', value: bet.gameName, inline: true },
-            { name: 'Access Code', value: `**\`${accessCode}\`**` },
-        ],
-        timestamp: new Date().toISOString(),
-    });
-
-    revalidatePath('/admin');
-    revalidatePath(`/play/user/${bet.userId}`);
-
-    return { success: true, accessCode };
-}
+// This function is no longer needed with the new flow.
+// export async function confirmBet(betId: string) { ... }
 
 
 export async function findGameByCode(code: string) {
-  const allBets = await getBets();
+  const allBets = getBets();
   const bet = allBets.find(b => b.accessCode === code && b.status === 'confirmed');
 
   if (bet) {
     return { success: true, url: `/play/game/${bet.id}` };
   } else {
-    return { success: false, error: 'Invalid or unconfirmed game code.' };
+    // Check if the game was already played
+    const playedBet = allBets.find(b => b.accessCode === code && (b.status === 'won' || b.status === 'lost'));
+    if(playedBet) {
+        return { success: false, error: 'This game code has already been used.' };
+    }
+    return { success: false, error: 'Invalid game code.' };
   }
 }
 
 
 export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number, gameOptions?: Record<string, any>) {
-    const allBets = await getBets();
+    const allBets = getBets();
     const betIndex = allBets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
     }
     const bet = allBets[betIndex];
+
+    // Prevent re-resolving a game
+    if (bet.status === 'won' || bet.status === 'lost') {
+      return { success: false, error: 'Game has already been resolved.' };
+    }
 
     const statusMap = {
         'win': 'won',
@@ -186,7 +170,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push'
     }
     const updatedBet = allBets[betIndex];
 
-    await setBets(allBets);
+    setBets(allBets);
     
     const colorMap = { 'win': 0x2ecc71, 'loss': 0xe74c3c, 'push': 0xaaaaaa };
 
@@ -203,7 +187,6 @@ export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push'
         timestamp: new Date().toISOString(),
     });
     
-    revalidatePath('/admin');
     revalidatePath(`/play/game/${betId}`);
     revalidatePath(`/play/user/${bet.userId}`);
 

@@ -1,14 +1,16 @@
 'use server';
 
-import { kv } from '@vercel/kv';
 import type { Bet } from './types';
 
-const BETS_KEY = 'bets_all_db';
+// This is a simple in-memory database.
+// It's not suitable for production use on serverless platforms like Vercel,
+// as the memory is not persisted across requests or deployments.
+let bets: Bet[] = [];
 
-export async function getBets(): Promise<Bet[]> {
-  return (await kv.get<Bet[]>(BETS_KEY)) ?? [];
+export function getBets(): Bet[] {
+  return bets;
 }
 
-export async function setBets(bets: Bet[]): Promise<unknown> {
-  return await kv.set(BETS_KEY, bets);
+export function setBets(newBets: Bet[]): void {
+  bets = newBets;
 }
