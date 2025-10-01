@@ -28,18 +28,6 @@ export default function Header() {
               Home
             </Link>
         </nav>
-         <div className="flex items-center">
-            <Link
-                href="/admin"
-                className={cn(
-                    'transition-colors hover:text-primary flex items-center gap-2',
-                    pathname === "/admin" ? 'text-primary' : 'text-muted-foreground'
-                )}
-                >
-                <Shield />
-                Admin
-            </Link>
-        </div>
       </div>
     </header>
   );

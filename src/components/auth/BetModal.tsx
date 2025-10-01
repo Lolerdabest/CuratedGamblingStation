@@ -118,7 +118,11 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details, choose your options, and place your bet.
+                  To confirm your bet, please pay in-game using:
+                  <code className="bg-background/50 text-primary font-bold p-1 rounded-md text-sm block my-2 text-center">
+                    /pay Lolerdabest69 {'<amount>'}
+                  </code>
+                   Once paid, an admin will confirm your bet.
                 </DialogDescription>
               </DialogHeader>
 
