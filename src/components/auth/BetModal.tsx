@@ -72,7 +72,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
       if (result.success) {
         toast({
             title: 'Bet Placed!',
-            description: 'An admin will confirm your payment shortly.',
+            description: 'Your game is ready to play. Good luck!',
         });
         handleClose();
         router.push(`/play/user/${values.minecraftUsername}`);
@@ -105,7 +105,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details and bet amount. An admin will confirm your payment to enable your game.
+                  Enter your details and bet amount. Your game will be available to play immediately.
                 </DialogDescription>
               </DialogHeader>
 
@@ -154,7 +154,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Place Bet
+                  Place Bet & Play
                 </Button>
               </DialogFooter>
             </form>

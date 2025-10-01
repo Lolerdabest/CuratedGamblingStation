@@ -7,26 +7,9 @@ import type { Bet } from './types';
 import { headers } from 'next/headers';
 
 // In a real app, this would be a database (e.g., Firestore)
-// By putting it in a separate object, we can better simulate a persistent store in dev.
 const db = {
-  bets: [] as Bet[] // Removed mock bets
+  bets: [] as Bet[] 
 };
-
-// --- Helper to get base URL ---
-function getBaseUrl() {
-    // If a base URL is set in the environment variables, use that.
-    // This is the reliable way to get the public URL in production.
-    if (process.env.NEXT_PUBLIC_BASE_URL) {
-      return process.env.NEXT_PUBLIC_BASE_URL;
-    }
-  
-    // Otherwise, fall back to using headers, which works in most environments.
-    const heads = headers();
-    const protocol = heads.get('x-forwarded-proto') || 'http';
-    const host = heads.get('host');
-    return `${protocol}://${host}`;
-}
-
 
 // --- Schemas ---
 const placeBetSchema = z.object({
@@ -35,41 +18,6 @@ const placeBetSchema = z.object({
   gameId: z.enum(['dragon-tower', 'dice', 'roulette', 'mines']),
   amount: z.number(),
 });
-
-// --- Helper Functions ---
-async function sendBetPlacementWebhook(bet: Bet) {
-    if (!process.env.DISCORD_WEBHOOK_URL) {
-        console.warn('DISCORD_WEBHOOK_URL not set. Skipping webhook notification.');
-        return;
-    }
-    
-    const baseUrl = getBaseUrl();
-    const confirmationUrl = `${baseUrl}/api/confirm?betId=${bet.id}`;
-
-    try {
-        await fetch(process.env.DISCORD_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                embeds: [{
-                    title: '⏳ New Bet Awaiting Confirmation',
-                    color: 0xFFA500, // Orange
-                    description: `To confirm you have received the payment, click the link below:\n\n[**Click Here to Confirm Payment**](${confirmationUrl})`,
-                    fields: [
-                        { name: 'Player', value: bet.userId, inline: true },
-                        { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
-                        { name: 'Game', value: bet.gameName, inline: true },
-                        { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
-                    ],
-                    footer: { text: `Bet ID: ${bet.id}` },
-                    timestamp: new Date().toISOString()
-                }]
-            })
-        });
-    } catch (error) {
-        console.error('Failed to send Discord webhook for bet placement:', error);
-    }
-}
 
 
 // --- Public Actions ---
@@ -93,13 +41,13 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameId,
     gameName: game.name,
     amount,
-    status: 'pending', // Default to pending for admin confirmation
+    status: 'confirmed', // Bet is immediately confirmed
     createdAt: Date.now(),
   };
 
   db.bets.unshift(newBet);
   
-  await sendBetPlacementWebhook(newBet);
+  revalidatePath(`/play/user/${userId}`);
 
   return { success: true, bet: newBet };
 }
@@ -115,52 +63,6 @@ export async function getUserBets(username: string): Promise<Bet[]> {
 export async function getAllBets(): Promise<Bet[]> {
     return db.bets.sort((a, b) => b.createdAt - a.createdAt);
 }
-
-export async function confirmBet(betId: string): Promise<{ success: boolean, error?: string, bet?: Bet }> {
-    const betIndex = db.bets.findIndex(b => b.id === betId);
-    if (betIndex === -1) {
-        return { success: false, error: "Bet not found." };
-    }
-    
-    const bet = db.bets[betIndex];
-
-    if (bet.status !== 'pending') {
-        return { success: false, error: "Bet is not pending confirmation." };
-    }
-
-    // Update the bet status
-    db.bets[betIndex] = { ...bet, status: 'confirmed' };
-    const confirmedBet = db.bets[betIndex];
-    
-    // Optional: Send a confirmation webhook to Discord
-    if (process.env.DISCORD_WEBHOOK_URL) {
-         try {
-            await fetch(process.env.DISCORD_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    embeds: [{
-                        title: '✅ Bet Confirmed',
-                        color: 0x00FF00, // Green
-                        description: `**${bet.userId}** is now able to play their game.`,
-                        fields: [
-                            { name: 'Game', value: bet.gameName, inline: true },
-                            { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
-                        ],
-                        timestamp: new Date().toISOString()
-                    }]
-                })
-            });
-        } catch (error) {
-            console.error('Failed to send Discord webhook for confirmation:', error);
-        }
-    }
-
-    revalidatePath(`/play/user/${bet.userId}`);
-
-    return { success: true, bet: confirmedBet };
-}
-
 
 export async function resolveGame(betId: string, result: 'win' | 'loss', payout: number) {
     const betIndex = db.bets.findIndex((b) => b.id === betId);

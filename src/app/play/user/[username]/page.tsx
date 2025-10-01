@@ -29,7 +29,6 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                    <Badge
                       variant="outline"
                       className={cn('capitalize border-2', {
-                        'border-yellow-500 text-yellow-400': bet.status === 'pending',
                         'border-blue-500 text-blue-400': bet.status === 'confirmed',
                         'border-green-500 text-green-400': bet.status === 'won',
                         'border-red-500 text-red-400': bet.status === 'lost',
@@ -43,12 +42,6 @@ export default async function UserHistoryPage({ params }: { params: { username: 
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-grow space-y-4">
-                 {bet.status === 'pending' && (
-                    <div className="flex items-center gap-3 p-3 rounded-md bg-yellow-500/10 text-yellow-400">
-                        <Clock className="w-5 h-5 shrink-0"/>
-                        <p className="text-sm">Waiting for admin to confirm your payment.</p>
-                    </div>
-                 )}
                  {bet.status === 'won' && (
                     <div className="flex items-center gap-3 p-3 rounded-md bg-green-500/10 text-green-400">
                         <CheckCircle className="w-5 h-5 shrink-0"/>
