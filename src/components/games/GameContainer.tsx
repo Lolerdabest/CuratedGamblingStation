@@ -4,6 +4,8 @@ import { Bet } from "@/lib/types";
 import MinesGame from "./MinesGame";
 import RouletteGame from "./RouletteGame";
 import PopTheBalloonGame from "./PopTheBalloonGame";
+import BlackjackGame from "./BlackjackGame";
+import KenoGame from "./KenoGame";
 import { games } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -17,6 +19,8 @@ const gameComponents = {
     'mines': MinesGame,
     'roulette': RouletteGame,
     'pop-the-balloon': PopTheBalloonGame,
+    'blackjack': BlackjackGame,
+    'keno': KenoGame,
 };
 
 export default function GameContainer({ bet }: GameContainerProps) {

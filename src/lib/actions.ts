@@ -50,7 +50,7 @@ async function sendDiscordWebhook(embed: any) {
 const placeBetSchema = z.object({
   userId: z.string().min(3, 'Username must be at least 3 characters.'),
   discordTag: z.string().min(2, 'Discord tag is required.'),
-  gameId: z.enum(['pop-the-balloon', 'roulette', 'mines']),
+  gameId: z.enum(['pop-the-balloon', 'roulette', 'mines', 'blackjack', 'keno']),
   amount: z.number(),
   gameOptions: z.record(z.any()).optional(),
 });
@@ -112,7 +112,7 @@ export async function getUserBets(username: string): Promise<Bet[]> {
 }
 
 export async function getAllBets(): Promise<Bet[]> {
-    return db.bets.sort((a, b) => b.createdAt - a.createdAt);
+    return db.bets.sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
 }
 
 export async function confirmBet(betId: string) {
@@ -155,19 +155,29 @@ export async function findGameByCode(code: string) {
 }
 
 
-export async function resolveGame(betId: string, result: 'win' | 'loss', payout: number) {
+export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number) {
     const betIndex = db.bets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
     }
     const bet = db.bets[betIndex];
 
-    db.bets[betIndex] = { ...bet, status: result === 'win' ? 'won' : 'lost', payout: payout };
+    const statusMap = {
+        'win': 'won',
+        'loss': 'lost',
+        'push': 'won' // Treat push as a "win" of the original amount
+    } as const;
+
+    const status = statusMap[result];
+
+    db.bets[betIndex] = { ...bet, status: status, payout: payout };
     const updatedBet = db.bets[betIndex];
     
+    const colorMap = { 'win': 0x2ecc71, 'loss': 0xe74c3c, 'push': 0xaaaaaa };
+
     await sendDiscordWebhook({
-        title: `Game Finished: ${result === 'win' ? 'Win' : 'Loss'}`,
-        color: result === 'win' ? 0x2ecc71 : 0xe74c3c,
+        title: `Game Finished: ${result.charAt(0).toUpperCase() + result.slice(1)}`,
+        color: colorMap[result],
         fields: [
             { name: 'Player', value: updatedBet.userId, inline: true },
             { name: 'Game', value: updatedBet.gameName, inline: true },

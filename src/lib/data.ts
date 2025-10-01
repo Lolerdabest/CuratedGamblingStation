@@ -1,5 +1,5 @@
 import { Game, Bet } from '@/lib/types';
-import { Gift, Bomb } from 'lucide-react';
+import { Gift, Bomb, Spade, Ticket } from 'lucide-react';
 import { Icons } from '@/components/icons';
 
 export const games: Game[] = [
@@ -23,6 +23,20 @@ export const games: Game[] = [
     description: 'Uncover gems and avoid the mines. The more you find, the more you win.',
     minBet: 250,
     icon: Bomb,
+  },
+  {
+    id: 'blackjack',
+    name: 'Blackjack',
+    description: 'Get closer to 21 than the dealer without going over.',
+    minBet: 500,
+    icon: Spade,
+  },
+  {
+    id: 'keno',
+    name: 'Keno',
+    description: 'Pick your lucky numbers and see how many you can match.',
+    minBet: 100,
+    icon: Ticket,
   },
 ];
 
