@@ -43,6 +43,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   db.bets.unshift(newBet);
   
   revalidatePath(`/play/user/${userId}`);
+  revalidatePath(`/play/game/${newBet.id}`);
 
   return { success: true, bet: newBet };
 }

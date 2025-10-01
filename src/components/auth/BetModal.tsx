@@ -69,13 +69,13 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
         amount: values.amount,
       });
 
-      if (result.success) {
+      if (result.success && result.bet) {
         toast({
             title: 'Bet Placed!',
-            description: 'Your game is ready to play. Good luck!',
+            description: 'Your game is ready. Good luck!',
         });
         handleClose();
-        router.push(`/play/user/${values.minecraftUsername}`);
+        router.push(`/play/game/${result.bet.id}`);
       } else {
         toast({
           variant: 'destructive',

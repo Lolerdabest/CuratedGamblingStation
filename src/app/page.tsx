@@ -5,7 +5,6 @@ import { GameCard } from '@/components/shared/GameCard';
 import { BetModal } from '@/components/auth/BetModal';
 import type { Game } from '@/lib/types';
 import { games } from '@/lib/data';
-import UserSearch from '@/components/play/UserSearch';
 import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
@@ -39,17 +38,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        <Separator className="my-12 md:my-20 bg-border/40" />
-
-        <section className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-headline font-bold mb-4 text-primary">Check Your Games</h2>
-            <p className="text-muted-foreground mb-8">
-              Enter your Minecraft username to see your active and past games.
-            </p>
-            <UserSearch />
-        </section>
-
       </div>
       {selectedGame && (
         <BetModal
