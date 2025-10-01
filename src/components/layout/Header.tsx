@@ -4,11 +4,9 @@ import Link from 'next/link';
 import { Gamepad2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/play', label: 'Play' },
   { href: '/admin', label: 'Admin' },
 ];
 
