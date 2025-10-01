@@ -82,7 +82,7 @@
 
 @layer components {
   .floating-icons {
-    @apply pointer-events-none absolute inset-0 z-[-1] overflow-hidden;
+    @apply pointer-events-none absolute inset-0 z-0 overflow-hidden;
   }
   .floating-icons .icon {
     @apply absolute block text-primary/15;
