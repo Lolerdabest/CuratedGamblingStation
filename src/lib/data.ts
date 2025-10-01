@@ -1,14 +1,14 @@
 import { Game, Bet } from '@/lib/types';
-import { TowerControl, Bomb } from 'lucide-react';
+import { Gift, Bomb } from 'lucide-react';
 import { Icons } from '@/components/icons';
 
 export const games: Game[] = [
   {
-    id: 'dragon-tower',
-    name: 'Dragon Tower',
-    description: 'Climb the tower, avoiding skulls to increase your multiplier.',
+    id: 'pop-the-balloon',
+    name: 'Pop the Balloon',
+    description: 'Pop balloons to increase your multiplier, but avoid the duds.',
     minBet: 250,
-    icon: TowerControl,
+    icon: Gift,
   },
   {
     id: 'roulette',

@@ -3,7 +3,7 @@
 import { Bet } from "@/lib/types";
 import MinesGame from "./MinesGame";
 import RouletteGame from "./RouletteGame";
-import DragonTowerGame from "./DragonTowerGame";
+import PopTheBalloonGame from "./PopTheBalloonGame";
 import { games } from "@/lib/data";
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -16,7 +16,7 @@ interface GameContainerProps {
 const gameComponents = {
     'mines': MinesGame,
     'roulette': RouletteGame,
-    'dragon-tower': DragonTowerGame,
+    'pop-the-balloon': PopTheBalloonGame,
 };
 
 export default function GameContainer({ bet }: GameContainerProps) {
