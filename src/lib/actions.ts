@@ -4,12 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games } from './data';
 import type { Bet } from './types';
-import { headers } from 'next/headers';
-
-// In a real app, this would be a database (e.g., Firestore)
-const db = {
-  bets: [] as Bet[] 
-};
+import { db } from './db';
 
 // --- Schemas ---
 const placeBetSchema = z.object({
@@ -41,7 +36,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameId,
     gameName: game.name,
     amount,
-    status: 'confirmed', // Bet is immediately confirmed
+    status: 'confirmed',
     createdAt: Date.now(),
   };
 
@@ -74,27 +69,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     db.bets[betIndex] = { ...bet, status: result === 'win' ? 'won' : 'lost', payout: payout };
     
     if(result === 'win' && payout > 0 && process.env.DISCORD_WEBHOOK_URL){
-        try {
-            await fetch(process.env.DISCORD_WEBHOOK_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    embeds: [{
-                        title: '🎉 Player Won!',
-                        color: 0x00FF00,
-                        fields: [
-                            { name: 'Player', value: bet.userId, inline: true },
-                            { name: 'Game', value: bet.gameName, inline: true },
-                            { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
-                            { name: 'Payout', value: payout.toLocaleString(), inline: true },
-                        ],
-                        timestamp: new Date().toISOString()
-                    }]
-                })
-            });
-        } catch (error) {
-            console.error('Failed to send Discord webhook:', error);
-        }
+        // Discord webhook logic for wins can be re-added here if needed.
     }
     
     revalidatePath(`/play/game/${betId}`);

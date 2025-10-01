@@ -82,6 +82,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
           title: 'Error placing bet',
           description: result.error || 'An unknown error occurred.',
         });
+        setIsSubmitting(false);
       }
     } catch (error) {
       toast({
@@ -89,7 +90,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
         title: 'Error placing bet',
         description: 'Could not connect to the server. Please try again.',
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -153,8 +153,14 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
               <DialogFooter>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Place Bet & Play
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Please wait, redirecting...
+                    </>
+                  ) : (
+                    'Place Bet & Play'
+                  )}
                 </Button>
               </DialogFooter>
             </form>
