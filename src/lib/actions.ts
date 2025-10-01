@@ -174,6 +174,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     
     revalidatePath(`/play/game/${betId}`);
     revalidatePath('/admin');
+    revalidatePath(`/play/user/${bet.userId}`);
 
     return { success: true, bet };
 }

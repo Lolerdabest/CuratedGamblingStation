@@ -29,13 +29,17 @@ export default function AdminDashboardClient({ initialBets }: AdminDashboardClie
   const [searchTerm, setSearchTerm] = React.useState('');
   const [confirmingId, setConfirmingId] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    setBets(initialBets);
+  }, [initialBets]);
+
   const handleConfirm = async (betId: string) => {
     setConfirmingId(betId);
     try {
       const result = await confirmBet(betId);
       if (result.success) {
         toast({ title: 'Bet Confirmed!', description: 'The player can now access their game.' });
-        // Optimistically update the UI
+        // Optimistically update the UI while revalidation happens in the background
         setBets(currentBets =>
           currentBets.map(bet =>
             bet.id === betId ? { ...bet, status: 'confirmed' } : bet
@@ -98,9 +102,10 @@ export default function AdminDashboardClient({ initialBets }: AdminDashboardClie
                   <TableCell>{formatDistanceToNow(new Date(bet.createdAt), { addSuffix: true })}</TableCell>
                   <TableCell>
                     <Badge
-                      className={cn({
+                      className={cn('capitalize', {
                         'bg-yellow-500/20 text-yellow-300 border-yellow-500/40': bet.status === 'pending',
-                        'bg-green-500/20 text-green-300 border-green-500/40': bet.status === 'confirmed' || bet.status === 'won',
+                        'bg-blue-500/20 text-blue-300 border-blue-500/40': bet.status === 'confirmed',
+                        'bg-green-500/20 text-green-300 border-green-500/40': bet.status === 'won',
                         'bg-red-500/20 text-red-300 border-red-500/40': bet.status === 'lost',
                       })}
                     >
