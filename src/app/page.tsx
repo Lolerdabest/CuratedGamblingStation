@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -8,8 +9,9 @@ import { games } from '@/lib/data';
 import { GameCodeForm } from '@/components/play/GameCodeForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function Home() {
+function HomePageContent() {
   const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
   const searchParams = useSearchParams();
 
@@ -70,5 +72,14 @@ export default function Home() {
         />
       )}
     </>
+  );
+}
+
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomePageContent />
+    </Suspense>
   );
 }
