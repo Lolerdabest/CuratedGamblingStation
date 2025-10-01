@@ -1,3 +1,5 @@
+'use client';
+
 import { getUserBets } from '@/lib/actions';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,11 +7,20 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, Clock, Gamepad2, ShieldCheck, Hourglass } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Bet } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
+export default function UserHistoryPage({ params }: { params: { username: string } }) {
+  const [bets, setBets] = useState<Bet[]>([]);
 
-export default async function UserHistoryPage({ params }: { params: { username: string } }) {
-  const bets = await getUserBets(params.username);
+  useEffect(() => {
+    async function fetchBets() {
+      const userBets = await getUserBets(params.username);
+      setBets(userBets);
+    }
+    fetchBets();
+  }, [params.username]);
+
 
   return (
     <div className="container mx-auto px-4 py-8">

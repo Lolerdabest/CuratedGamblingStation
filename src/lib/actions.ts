@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { games } from './data';
 import type { Bet, BetStatus } from './types';
 import { db } from './db';
-import { redirect } from 'next/navigation';
 import dotenv from 'dotenv';
 
 dotenv.config();
