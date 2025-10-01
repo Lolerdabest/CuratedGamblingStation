@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { games } from './data';
-import type { Bet } from './types';
+import type { Bet, BetStatus } from './types';
 import { db } from './db';
 import { redirect } from 'next/navigation';
 
@@ -20,6 +20,28 @@ const generateAccessCode = () => {
     return result;
 }
 
+// --- Webhook ---
+async function sendDiscordWebhook(embed: any) {
+  const url = process.env.DISCORD_WEBHOOK_URL;
+  if (!url) {
+    console.warn('Discord webhook URL not configured. Skipping notification.');
+    return;
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ embeds: [embed] }),
+    });
+
+    if (!response.ok) {
+      console.error(`Discord webhook failed with status ${response.status}:`, await response.json());
+    }
+  } catch (error) {
+    console.error('Error sending Discord webhook:', error);
+  }
+}
 
 // --- Schemas ---
 const placeBetSchema = z.object({
@@ -59,6 +81,19 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
 
   db.bets.unshift(newBet);
   
+  await sendDiscordWebhook({
+    title: 'New Bet Placed',
+    color: 0xf1c40f, // Yellow
+    fields: [
+        { name: 'Player', value: newBet.userId, inline: true },
+        { name: 'Discord', value: newBet.discordTag, inline: true },
+        { name: 'Game', value: newBet.gameName, inline: true },
+        { name: 'Amount', value: newBet.amount.toLocaleString(), inline: true },
+        { name: 'Game Options', value: '`' + JSON.stringify(newBet.gameOptions) + '`' }
+    ],
+    timestamp: new Date().toISOString(),
+  });
+
   revalidatePath('/admin');
   revalidatePath(`/play/user/${userId}`);
 
@@ -86,9 +121,21 @@ export async function confirmBet(betId: string) {
     const accessCode = generateAccessCode();
     db.bets[betIndex].status = 'confirmed';
     db.bets[betIndex].accessCode = accessCode;
+    const bet = db.bets[betIndex];
+
+    await sendDiscordWebhook({
+        title: 'Bet Confirmed!',
+        color: 0x3498db, // Blue
+        fields: [
+            { name: 'Player', value: bet.userId, inline: true },
+            { name: 'Game', value: bet.gameName, inline: true },
+            { name: 'Access Code', value: `**\`${accessCode}\`**` },
+        ],
+        timestamp: new Date().toISOString(),
+    });
 
     revalidatePath('/admin');
-    revalidatePath(`/play/user/${db.bets[betIndex].userId}`);
+    revalidatePath(`/play/user/${bet.userId}`);
 
     return { success: true, accessCode };
 }
@@ -113,10 +160,23 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     const bet = db.bets[betIndex];
 
     db.bets[betIndex] = { ...bet, status: result === 'win' ? 'won' : 'lost', payout: payout };
+    const updatedBet = db.bets[betIndex];
+    
+    await sendDiscordWebhook({
+        title: `Game Finished: ${result === 'win' ? 'Win' : 'Loss'}`,
+        color: result === 'win' ? 0x2ecc71 : 0xe74c3c, // Green for win, Red for loss
+        fields: [
+            { name: 'Player', value: updatedBet.userId, inline: true },
+            { name: 'Game', value: updatedBet.gameName, inline: true },
+            { name: 'Amount Bet', value: updatedBet.amount.toLocaleString(), inline: true },
+            { name: 'Payout', value: updatedBet.payout?.toLocaleString() ?? '0', inline: true },
+        ],
+        timestamp: new Date().toISOString(),
+    });
     
     revalidatePath('/admin');
     revalidatePath(`/play/game/${betId}`);
     revalidatePath(`/play/user/${bet.userId}`);
 
-    return { success: true, bet: db.bets[betIndex] };
+    return { success: true, bet: updatedBet };
 }
