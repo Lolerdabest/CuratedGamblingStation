@@ -1,5 +1,5 @@
 import { Game, Bet } from '@/lib/types';
-import { TowerControl, Bomb, Bird } from 'lucide-react';
+import { TowerControl, Bomb } from 'lucide-react';
 import { Icons } from '@/components/icons';
 
 export const games: Game[] = [
@@ -23,13 +23,6 @@ export const games: Game[] = [
     description: 'Uncover gems and avoid the mines. The more you find, the more you win.',
     minBet: 250,
     icon: Bomb,
-  },
-    {
-    id: 'chicken-cross',
-    name: 'Chicken Cross',
-    description: 'Help the chicken cross the road. The further you get, the bigger the prize.',
-    minBet: 250,
-    icon: Bird,
   },
 ];
 

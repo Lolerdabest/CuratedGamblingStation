@@ -28,7 +28,7 @@ export default function DragonTowerGame({ bet }: DragonTowerGameProps) {
     return Array.from({ length: TOWER_LEVELS }, () => Math.floor(Math.random() * TILES_PER_LEVEL));
   }, []);
 
-  const multiplier = useMemo(() => parseFloat((1.2 ** currentLevel).toFixed(2)), [currentLevel]);
+  const multiplier = useMemo(() => parseFloat((1 + currentLevel * 0.1).toFixed(2)), [currentLevel]);
   const payout = useMemo(() => Math.floor(bet.amount * multiplier), [bet.amount, multiplier]);
 
   const handleSelect = (level: number, tileIndex: number) => {

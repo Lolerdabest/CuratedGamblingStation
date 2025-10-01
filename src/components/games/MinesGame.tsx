@@ -35,8 +35,8 @@ export default function MinesGame({ bet }: MinesGameProps) {
   const gemsFound = useMemo(() => revealed.filter(index => !minePositions.has(index)).length, [revealed, minePositions]);
   const currentMultiplier = useMemo(() => {
     if (gemsFound === 0) return 1;
-    // Simplified multiplier logic
-    return parseFloat((1 + (gemsFound * 0.1) * (numMines / 5)).toFixed(2));
+    // Simplified multiplier logic with lower returns
+    return parseFloat((1 + (gemsFound * 0.05) * (numMines / 10)).toFixed(2));
   }, [gemsFound, numMines]);
   const potentialPayout = Math.floor(bet.amount * currentMultiplier);
 
