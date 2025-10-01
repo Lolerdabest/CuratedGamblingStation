@@ -20,54 +20,84 @@ const numbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 
 const numberColors: { [key: number]: 'red' | 'black' | 'green' } = {0: 'green', 1: 'red', 2: 'black', 3: 'red', 4: 'black', 5: 'red', 6: 'black', 7: 'red', 8: 'black', 9: 'red', 10: 'black', 11: 'black', 12: 'red', 13: 'black', 14: 'red', 15: 'black', 16: 'red', 17: 'black', 18: 'red', 19: 'red', 20: 'black', 21: 'red', 22: 'black', 23: 'red', 24: 'black', 25: 'red', 26: 'black', 27: 'red', 28: 'black', 29: 'black', 30: 'red', 31: 'black', 32: 'red', 33: 'black', 34: 'red', 35: 'black', 36: 'red'};
 
 
-const RouletteWheelIcon = ({ spinning }: { spinning: boolean }) => (
-  <>
-    <style jsx>{`
-      .ball {
-        transform-origin: 50% 50%;
-        animation: ${spinning ? 'spin 2s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none'};
-      }
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
+const RouletteWheelIcon = ({ spinning }: { spinning: boolean }) => {
+  const getCoordinatesForAngle = (angle: number, radius: number) => {
+    return {
+      x: 50 + radius * Math.cos(angle * Math.PI / 180),
+      y: 50 + radius * Math.sin(angle * Math.PI / 180)
+    };
+  };
+
+  const getArcPath = (startAngle: number, endAngle: number, radius: number) => {
+    const start = getCoordinatesForAngle(startAngle, radius);
+    const end = getCoordinatesForAngle(endAngle, radius);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} L 50 50 Z`;
+  };
+
+  return (
+    <>
+      <style jsx>{`
+        .ball {
+          transform-origin: 50% 50%;
+          animation: ${spinning ? 'spin 2s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none'};
         }
-        100% {
-          transform: rotate(1080deg);
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(1080deg); }
         }
-      }
-    `}</style>
-    <svg
-      className="w-48 h-48"
-      viewBox="0 0 100 100"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* Static Wheel */}
-      <circle cx="50" cy="50" r="48" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="2" />
-      <circle cx="50" cy="50" r="40" fill="hsl(var(--background))" />
-      {Array.from({ length: 37 }).map((_, i) => {
-        const angle = (i / 37) * 360;
-        return (
-          <line
-            key={i}
-            x1="50"
-            y1="50"
-            x2={50 + 40 * Math.cos(angle * Math.PI / 180)}
-            y2={50 + 40 * Math.sin(angle * Math.PI / 180)}
-            stroke="hsl(var(--border))"
-            strokeWidth="1"
-          />
-        );
-      })}
-      <circle cx="50" cy="50" r="15" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1" />
-      <circle cx="50" cy="50" r="10" fill="hsl(var(--primary))" />
-      
-      {/* Spinning Ball */}
-      <g className="ball">
-        <circle cx="50" cy="20" r="3" fill="white" />
-      </g>
-    </svg>
-  </>
-);
+      `}</style>
+      <svg
+        className="w-48 h-48"
+        viewBox="0 0 100 100"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Static Wheel */}
+        <circle cx="50" cy="50" r="48" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="2" />
+        
+        {/* Colored segments */}
+        {numbers.map((num, i) => {
+          const angle = (360 / 37);
+          const startAngle = i * angle - 90 - (angle / 2);
+          const endAngle = (i + 1) * angle - 90 - (angle / 2);
+          const color = numberColors[num];
+          let fill;
+          switch(color) {
+            case 'red': fill = '#dc2626'; break; // tailwind red-600
+            case 'black': fill = '#171717'; break; // tailwind neutral-900
+            case 'green': fill = '#16a34a'; break; // tailwind green-600
+          }
+
+          return <path key={num} d={getArcPath(startAngle, endAngle, 40)} fill={fill} />;
+        })}
+
+        {/* Divider lines */}
+        {Array.from({ length: 37 }).map((_, i) => {
+          const angle = (i / 37) * 360;
+          return (
+            <line
+              key={i}
+              x1="50"
+              y1="50"
+              x2={50 + 40 * Math.cos(angle * Math.PI / 180)}
+              y2={50 + 40 * Math.sin(angle * Math.PI / 180)}
+              stroke="hsl(var(--border))"
+              strokeWidth="0.5"
+            />
+          );
+        })}
+
+        <circle cx="50" cy="50" r="15" fill="hsl(var(--secondary))" stroke="hsl(var(--border))" strokeWidth="1" />
+        <circle cx="50" cy="50" r="10" fill="hsl(var(--primary))" />
+        
+        {/* Spinning Ball */}
+        <g className="ball">
+          <circle cx="50" cy="20" r="3" fill="white" />
+        </g>
+      </svg>
+    </>
+  )
+};
 
 
 export default function RouletteGame({ bet }: RouletteGameProps) {
