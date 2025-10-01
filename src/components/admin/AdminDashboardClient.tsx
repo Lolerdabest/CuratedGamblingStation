@@ -7,14 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, CircleDashed, Loader2 } from 'lucide-react';
+import { CheckCircle, CircleDashed, Loader2, Hourglass, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
-type ActionableBet = Bet & { isConfirming?: boolean };
-
 export default function AdminDashboardClient({ initialBets }: { initialBets: Bet[] }) {
-  const [bets, setBets] = React.useState<ActionableBet[]>(initialBets);
+  const [bets, setBets] = React.useState<Bet[]>(initialBets);
   const [isConfirming, setIsConfirming] = React.useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -52,11 +50,11 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
       case 'pending':
         return <Badge variant="secondary"><CircleDashed className="mr-1 h-3 w-3" />Pending</Badge>;
       case 'confirmed':
-        return <Badge className="bg-green-600/80"><CheckCircle className="mr-1 h-3 w-3" />Confirmed</Badge>;
+        return <Badge variant="outline" className="text-accent border-accent"><Hourglass className="mr-1 h-3 w-3" />Confirmed</Badge>;
       case 'won':
-        return <Badge className="bg-accent text-accent-foreground">Won</Badge>;
+        return <Badge className="bg-green-600/80"><ThumbsUp className="mr-1 h-3 w-3" />Won</Badge>;
       case 'lost':
-        return <Badge variant="destructive">Lost</Badge>;
+        return <Badge variant="destructive"><ThumbsDown className="mr-1 h-3 w-3" />Lost</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
