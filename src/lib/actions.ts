@@ -69,7 +69,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     return { success: false, error: 'Game not found.' };
   }
 
-  const allBets = getBets();
+  const allBets = await getBets();
   const accessCode = generateAccessCode();
 
   const newBet: Bet = {
@@ -86,7 +86,7 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   };
 
   allBets.unshift(newBet);
-  setBets(allBets);
+  await setBets(allBets);
   
   await sendDiscordWebhook({
     title: 'New Bet Placed - Ready for Confirmation',
@@ -108,17 +108,17 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
-    const allBets = getBets();
+    const allBets = await getBets();
     return allBets.find((b) => b.id === betId);
 }
 
 export async function getUserBets(username: string): Promise<Bet[]> {
-  const allBets = getBets();
+  const allBets = await getBets();
   return allBets.filter((b) => b.userId.toLowerCase() === username.toLowerCase()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function getAllBets(): Promise<Bet[]> {
-    const allBets = getBets();
+    const allBets = await getBets();
     return allBets.sort((a, b) => b.createdAt - a.createdAt);
 }
 
@@ -127,7 +127,7 @@ export async function getAllBets(): Promise<Bet[]> {
 
 
 export async function findGameByCode(code: string) {
-  const allBets = getBets();
+  const allBets = await getBets();
   const bet = allBets.find(b => b.accessCode === code && b.status === 'confirmed');
 
   if (bet) {
@@ -144,7 +144,7 @@ export async function findGameByCode(code: string) {
 
 
 export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push', payout: number, gameOptions?: Record<string, any>) {
-    const allBets = getBets();
+    const allBets = await getBets();
     const betIndex = allBets.findIndex((b) => b.id === betId);
     if (betIndex === -1) {
         return { success: false, error: 'Bet not found.' };
@@ -170,7 +170,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss' | 'push'
     }
     const updatedBet = allBets[betIndex];
 
-    setBets(allBets);
+    await setBets(allBets);
     
     const colorMap = { 'win': 0x2ecc71, 'loss': 0xe74c3c, 'push': 0xaaaaaa };
 

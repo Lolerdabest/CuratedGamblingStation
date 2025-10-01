@@ -7,10 +7,10 @@ import type { Bet } from './types';
 // as the memory is not persisted across requests or deployments.
 let bets: Bet[] = [];
 
-export function getBets(): Bet[] {
+export async function getBets(): Promise<Bet[]> {
   return bets;
 }
 
-export function setBets(newBets: Bet[]): void {
+export async function setBets(newBets: Bet[]): Promise<void> {
   bets = newBets;
 }
