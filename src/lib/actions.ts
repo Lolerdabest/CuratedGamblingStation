@@ -145,7 +145,7 @@ export async function findGameByCode(code: string) {
   const bet = db.bets.find(b => b.accessCode === code && b.status === 'confirmed');
 
   if (bet) {
-    redirect(`/play/game/${bet.id}`);
+    return { success: true, url: `/play/game/${bet.id}` };
   } else {
     return { success: false, error: 'Invalid or unconfirmed game code.' };
   }

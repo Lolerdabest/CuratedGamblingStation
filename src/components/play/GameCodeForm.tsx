@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export function GameCodeForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,14 +30,15 @@ export function GameCodeForm() {
 
     try {
       const result = await findGameByCode(code.trim());
-      if (result && !result.success) {
+      if (result.success && result.url) {
+        router.push(result.url);
+      } else if (!result.success) {
         toast({
           variant: 'destructive',
           title: 'Error',
           description: result.error,
         });
       }
-      // On success, the action redirects, so we don't need to handle it here.
     } catch (error) {
       toast({
         variant: 'destructive',
