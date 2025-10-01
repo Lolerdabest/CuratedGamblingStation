@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "dragon-tower",
+      "description": "A mystical tower glowing with purple energy.",
+      "imageUrl": "https://images.unsplash.com/photo-1609348445085-44f7627d7583?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnbG93aW5nJTIwdG93ZXJ8ZW58MHx8fHwxNzU5Mjk5ODY5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "glowing tower"
+    },
+    {
+      "id": "dice",
+      "description": "A pair of dice with neon blue highlights.",
+      "imageUrl": "https://images.unsplash.com/photo-1501497849301-66eb0889c6a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxuZW9uJTIwZGljZXxlbnwwfHx8fDE3NTkyOTk4Njl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "neon dice"
+    },
+    {
+      "id": "roulette",
+      "description": "A futuristic roulette wheel with vibrant colors.",
+      "imageUrl": "https://images.unsplash.com/photo-1625888791210-40ea41c1d0f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXNpbm8lMjByb3VsZXR0ZXxlbnwwfHx8fDE3NTkxOTAyNjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "casino roulette"
+    },
+    {
+      "id": "mines",
+      "description": "A grid of tiles with a glowing gem and a bomb.",
+      "imageUrl": "https://images.unsplash.com/photo-1746420800136-325211014b6f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxnbG93aW5nJTIwZ2VtfGVufDB8fHx8MTc1OTI5OTg2OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "glowing gem"
+    }
+  ]
 }
