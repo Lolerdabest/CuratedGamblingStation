@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { Bet } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,16 +32,6 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
   const [ballAnimation, setBallAnimation] = useState<React.CSSProperties>({});
   const [animationName, setAnimationName] = useState('none');
 
-  useEffect(() => {
-    // Cleanup animation style tag on component unmount
-    return () => {
-      const styleTag = document.getElementById('roulette-spin-animation');
-      if (styleTag) {
-        styleTag.remove();
-      }
-    };
-  }, []);
-
   const handleSpin = () => {
     if (!betChoice) {
       toast({ variant: 'destructive', title: 'No bet placed', description: 'Please select red or black.' });
@@ -57,11 +47,11 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     const fullSpins = 4 * 360;
     const finalAngle = fullSpins + endAngle;
 
+    const newAnimationName = `roulette-spin-${Date.now()}`;
     const spinKeyframes = `
-      @keyframes roulette-spin {
-        0% { transform: rotate(0deg) translateX(95px) rotate(0deg); }
-        80% { transform: rotate(${finalAngle}deg) translateX(95px) rotate(-${finalAngle}deg); }
-        100% { transform: rotate(${finalAngle}deg) translateX(95px) rotate(-${finalAngle}deg); }
+      @keyframes ${newAnimationName} {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(${finalAngle}deg); }
       }
     `;
 
@@ -73,15 +63,12 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
     }
     styleTag.innerHTML = spinKeyframes;
     
-    const newAnimationName = `roulette-spin-${Date.now()}`;
-    styleTag.innerHTML = styleTag.innerHTML.replace('roulette-spin', newAnimationName);
-
     setAnimationName(newAnimationName);
 
     setTimeout(() => {
         setWinningNumber(winner);
         setIsSpinning(false);
-        setAnimationName('none'); // Stop animation
+        // No need to setAnimationName to 'none' as it's a one-shot animation
 
         startTransition(async () => {
             const winnerColor = numberColors[winner];
@@ -102,17 +89,16 @@ export default function RouletteGame({ bet }: RouletteGameProps) {
   return (
     <Card className="max-w-lg mx-auto bg-secondary border-primary/20 text-center">
       <CardContent className="p-6 space-y-6">
-        <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
-          <Icons.roulette className="w-full h-full" />
-           <div
-            className="absolute top-1/2 left-1/2 -mt-2 -ml-2 w-4 h-4 rounded-full bg-white shadow-lg"
+        <div 
+            className="relative w-64 h-64 mx-auto flex items-center justify-center"
             style={{ 
-              animationName, 
-              animationDuration: isSpinning ? '4s' : '0s',
-              animationTimingFunction: isSpinning ? 'cubic-bezier(0.2, 0.8, 0.7, 1)' : 'linear',
+              animationName: isSpinning ? animationName : 'none', 
+              animationDuration: '4s',
+              animationTimingFunction: 'cubic-bezier(0.2, 0.8, 0.7, 1)',
               animationFillMode: 'forwards',
             }}
-          ></div>
+        >
+          <Icons.roulette className="w-full h-full" />
           {winningNumber !== null && !isSpinning && (
             <div className="absolute flex flex-col items-center justify-center animate-scale-in">
               <p className='text-sm text-muted-foreground'>Winner</p>

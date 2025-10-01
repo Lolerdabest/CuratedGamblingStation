@@ -1,6 +1,5 @@
 import { Game, Bet } from '@/lib/types';
-import { Bomb, Gift, Spade, Ticket } from 'lucide-react';
-import { Icons } from '@/components/icons';
+import { Bomb, Circle, Gift, Spade, Ticket } from 'lucide-react';
 
 export const games: Game[] = [
   {
@@ -15,7 +14,7 @@ export const games: Game[] = [
     name: 'Roulette',
     description: 'Bet on your lucky number or color on the spinning wheel.',
     minBet: 250,
-    icon: Icons.roulette,
+    icon: Circle,
   },
   {
     id: 'mines',
