@@ -11,17 +11,13 @@ let bets: Bet[] = [...mockBets];
 
 // --- Schemas ---
 const placeBetSchema = z.object({
-  userId: z.string(),
-  discordTag: z.string(),
+  userId: z.string().min(3, 'Username must be at least 3 characters.'),
+  discordTag: z.string().min(2, 'Discord tag is required.'),
   gameId: z.enum(['dragon-tower', 'dice', 'roulette', 'mines']),
   amount: z.number(),
 });
 
 // --- Helper Functions ---
-function generateConfirmationCode(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
 async function sendBetPlacementWebhook(bet: Bet) {
     if (!process.env.DISCORD_WEBHOOK_URL) {
         console.warn('DISCORD_WEBHOOK_URL not set. Skipping webhook notification.');
@@ -34,16 +30,16 @@ async function sendBetPlacementWebhook(bet: Bet) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 embeds: [{
-                    title: '🚀 New Bet Placed - Give Code to Player',
-                    color: 0x5865F2, // Blue
+                    title: '⏳ New Bet Awaiting Confirmation',
+                    color: 0xFFA500, // Orange
+                    description: 'Go to the admin panel to confirm this payment.',
                     fields: [
                         { name: 'Player', value: bet.userId, inline: true },
                         { name: 'Discord', value: bet.discordTag || 'N/A', inline: true },
                         { name: 'Game', value: bet.gameName, inline: true },
                         { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
-                        { name: 'Game Code (Give to Player)', value: `\`\`\`${bet.confirmationCode}\`\`\`` },
                     ],
-                    footer: { text: `Bet ID (Internal): ${bet.id}` },
+                    footer: { text: `Bet ID: ${bet.id}` },
                     timestamp: new Date().toISOString()
                 }]
             })
@@ -59,7 +55,7 @@ async function sendBetPlacementWebhook(bet: Bet) {
 export async function placeBet(input: z.infer<typeof placeBetSchema>) {
   const validatedInput = placeBetSchema.safeParse(input);
   if (!validatedInput.success) {
-    return { success: false, error: 'Invalid input.' };
+    return { success: false, error: validatedInput.error.errors.map(e => e.message).join(', ') };
   }
 
   const { userId, discordTag, gameId, amount } = validatedInput.data;
@@ -75,35 +71,73 @@ export async function placeBet(input: z.infer<typeof placeBetSchema>) {
     gameId,
     gameName: game.name,
     amount,
-    status: 'confirmed', // Bet is playable as soon as the code is given
-    confirmationCode: generateConfirmationCode(),
+    status: 'pending', // Default to pending for admin confirmation
     createdAt: Date.now(),
   };
 
   bets.unshift(newBet);
   
-  // Send webhook notification
   await sendBetPlacementWebhook(newBet);
 
-  revalidatePath(`/play/game/${newBet.id}`);
+  revalidatePath('/admin');
   return { success: true, bet: newBet };
-}
-
-export async function findGameByCode(code: string): Promise<{ success: boolean; error?: string }> {
-    // Find the bet where the confirmationCode matches the code entered by the user
-    const bet = bets.find(b => b.confirmationCode === code);
-
-    if (bet) {
-      // Redirect to the game page using the bet's actual ID
-      redirect(`/play/game/${bet.id}`);
-    } else {
-      return { success: false, error: 'No game found with that code.' };
-    }
 }
 
 export async function getBet(betId: string): Promise<Bet | undefined> {
     return bets.find((b) => b.id === betId);
 }
+
+export async function getUserBets(username: string): Promise<Bet[]> {
+  return bets.filter((b) => b.userId.toLowerCase() === username.toLowerCase());
+}
+
+export async function getAllBets(): Promise<Bet[]> {
+    return bets.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+export async function confirmBet(betId: string): Promise<{ success: boolean, error?: string }> {
+    const bet = bets.find(b => b.id === betId);
+    if (!bet) {
+        return { success: false, error: "Bet not found." };
+    }
+    if (bet.status !== 'pending') {
+        return { success: false, error: "Bet is not pending confirmation." };
+    }
+
+    bet.status = 'confirmed';
+    
+    // Optional: Send a confirmation webhook to Discord
+    if (process.env.DISCORD_WEBHOOK_URL) {
+         try {
+            await fetch(process.env.DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    embeds: [{
+                        title: '✅ Bet Confirmed',
+                        color: 0x00FF00, // Green
+                        description: `${bet.userId} is now able to play their game.`,
+                        fields: [
+                            { name: 'Player', value: bet.userId, inline: true },
+                            { name: 'Game', value: bet.gameName, inline: true },
+                            { name: 'Bet Amount', value: bet.amount.toLocaleString(), inline: true },
+                        ],
+                        timestamp: new Date().toISOString()
+                    }]
+                })
+            });
+        } catch (error) {
+            console.error('Failed to send Discord webhook for confirmation:', error);
+        }
+    }
+
+
+    revalidatePath('/admin');
+    revalidatePath(`/play/user/${bet.userId}`);
+
+    return { success: true };
+}
+
 
 export async function resolveGame(betId: string, result: 'win' | 'loss', payout: number) {
     const bet = bets.find((b) => b.id === betId);
@@ -139,6 +173,7 @@ export async function resolveGame(betId: string, result: 'win' | 'loss', payout:
     }
     
     revalidatePath(`/play/game/${betId}`);
+    revalidatePath('/admin');
 
     return { success: true, bet };
 }

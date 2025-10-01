@@ -1,14 +1,14 @@
-import { GameCodeForm } from "@/components/play/GameCodeForm";
+import UserSearch from "@/components/play/UserSearch";
 
 export default function PlayPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto text-center">
-        <h1 className="text-3xl font-headline font-bold mb-4 text-primary">Enter Your Game Code</h1>
+        <h1 className="text-3xl font-headline font-bold mb-4 text-primary">Check Your Games</h1>
         <p className="text-muted-foreground mb-8">
-          Enter the game code you received from an admin to access your game.
+          Enter your Minecraft username to see your active and past games.
         </p>
-        <GameCodeForm />
+        <UserSearch />
       </div>
     </div>
   );

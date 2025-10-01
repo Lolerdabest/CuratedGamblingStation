@@ -4,7 +4,7 @@ import * as React from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Game } from '@/lib/types';
+import type { Game } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -19,7 +19,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { placeBet } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 interface BetModalProps {
@@ -37,12 +36,12 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
     minecraftUsername: z.string().min(3, {
       message: 'Minecraft username must be at least 3 characters.',
     }),
-    discordTag: z.string().min(1, { message: 'Discord username is required.' }),
+    discordTag: z.string().min(2, { message: 'Discord username is required.' }),
     amount: z
       .number({ coerce: true })
       .min(game.minBet, { message: `Minimum bet is ${game.minBet}.` }),
   });
-
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,7 +53,6 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
 
   const handleClose = () => {
     onClose();
-    // Delay resetting form to allow dialog to close smoothly
     setTimeout(() => {
       form.reset();
       setIsSubmitting(false);
@@ -71,13 +69,13 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
         amount: values.amount,
       });
 
-      if (result.success && result.bet) {
+      if (result.success) {
         toast({
             title: 'Bet Placed!',
-            description: 'Ask an admin for your game code to start playing.',
+            description: 'An admin will confirm your payment shortly.',
         });
         handleClose();
-        router.push(`/play`);
+        router.push(`/play/user/${values.minecraftUsername}`);
       } else {
         toast({
           variant: 'destructive',
@@ -107,7 +105,7 @@ export function BetModal({ game, isOpen, onClose }: BetModalProps) {
                   Place your bet on {game.name}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter your details and bet amount. The admin will give you a game code to play.
+                  Enter your details and bet amount. An admin will confirm your payment to enable your game.
                 </DialogDescription>
               </DialogHeader>
 
