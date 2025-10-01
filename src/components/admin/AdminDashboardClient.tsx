@@ -2,22 +2,25 @@
 
 import * as React from 'react';
 import { Bet, BetStatus } from '@/lib/types';
-import { confirmBet } from '@/lib/actions';
+import { confirmBet, getBetsForAdmin } from '@/lib/actions';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, CircleDashed, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
 type ActionableBet = Bet & { isConfirming?: boolean };
 
 export default function AdminDashboardClient({ initialBets }: { initialBets: Bet[] }) {
   const [bets, setBets] = React.useState<ActionableBet[]>(initialBets);
+  const [isConfirming, setIsConfirming] = React.useState<string | null>(null);
+  const router = useRouter();
   const { toast } = useToast();
 
   const handleConfirm = async (betId: string) => {
-    setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: true } : b)));
+    setIsConfirming(betId);
 
     const result = await confirmBet(betId);
 
@@ -26,14 +29,18 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
         title: 'Success',
         description: result.message,
       });
-       setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false, status: result.newStatus! } : b)));
+       // Re-fetch data to ensure consistency
+       const updatedBets = await getBetsForAdmin();
+       setBets(updatedBets);
+       router.refresh();
     } else {
       toast({
         variant: 'destructive',
         title: 'Confirmation Failed',
         description: result.message,
       });
-      setBets((prev) => prev.map((b) => (b.id === betId ? { ...b, isConfirming: false } : b)));
+    } finally {
+        setIsConfirming(null);
     }
   };
 
@@ -88,9 +95,9 @@ export default function AdminDashboardClient({ initialBets }: { initialBets: Bet
                     <Button
                       size="sm"
                       onClick={() => handleConfirm(bet.id)}
-                      disabled={bet.isConfirming}
+                      disabled={!!isConfirming}
                     >
-                      {bet.isConfirming ? (
+                      {isConfirming === bet.id ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         'Confirm Payment'
